@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-EdurhApplication<edurh>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.projetoextensao.edurh.EdurhApplication",
+            "projectName": "edurh",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
