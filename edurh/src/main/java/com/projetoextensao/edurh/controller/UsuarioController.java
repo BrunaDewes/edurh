@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.projetoextensao.edurh.dto.SenhaRequest;
 import com.projetoextensao.edurh.model.Usuario;
 import com.projetoextensao.edurh.repository.UsuarioRepository;
 
@@ -76,13 +77,46 @@ public class UsuarioController {
             Usuario usuario = usuarioExistente.get();
             usuario.setNome(dadosAtualizados.getNome());
             usuario.setEmail(dadosAtualizados.getEmail());
-            usuario.setSenha(dadosAtualizados.getSenha());
+            //Não mexe na senha aqui
             return ResponseEntity.ok(usuarioRepository.save(usuario));
-        } else {
+        } 
+        else {
             return ResponseEntity.notFound().build();
         }
     }
 
+    // MUDAR A SENHA pelas configurações
+    @PutMapping("/{id}/senha")
+    public ResponseEntity<?> alterarSenha(
+            @PathVariable Long id,
+            @RequestBody SenhaRequest senhaRequest) {
+
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
+
+        if (usuarioOpt.isEmpty()) {
+            return ResponseEntity.status(404).body("Usuário não encontrado.");
+        }
+
+        Usuario usuario = usuarioOpt.get();
+
+        // 🔹 Verifica se a senha atual está correta
+        if (!passwordEncoder.matches(senhaRequest.getSenhaAtual(), usuario.getSenha())) {
+            return ResponseEntity.status(400).body("Senha atual incorreta.");
+        }
+
+        // 🔹 Valida formato da nova senha
+        if (!SENHA_PATTERN.matcher(senhaRequest.getNovaSenha()).matches()) {
+            return ResponseEntity.badRequest().body(
+                "A nova senha deve ter pelo menos 8 caracteres, 1 letra maiúscula, 1 minúscula e 1 caractere especial."
+            );
+        }
+
+        // 🔹 Atualiza senha
+        usuario.setSenha(passwordEncoder.encode(senhaRequest.getNovaSenha()));
+        usuarioRepository.save(usuario);
+
+        return ResponseEntity.ok("Senha alterada com sucesso!");
+    }
     
     // Rota DELETE - deleta usuário por ID
     @DeleteMapping("/{id}")
