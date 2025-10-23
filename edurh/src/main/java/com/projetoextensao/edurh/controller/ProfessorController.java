@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/professores")
+@CrossOrigin
 public class ProfessorController {
 
     @Autowired

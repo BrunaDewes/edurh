@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "http://localhost:3000") // libera o frontend
+//@CrossOrigin(origins = "http://localhost:3000") // libera o frontend
 public class LoginController {
 
     @Autowired
@@ -54,7 +54,7 @@ public class LoginController {
             }
 
             String token = authHeader.substring(7);
-            String email = JwtUtil.validateToken(token);
+            String email = JwtUtil.getEmailFromToken(token); 
 
             Optional<Usuario> usuario = usuarioRepository.findByEmail(email);
 
