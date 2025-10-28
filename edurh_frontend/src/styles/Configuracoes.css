@@ -1,0 +1,90 @@
+.config-container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 30px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  font-family: "Segoe UI", sans-serif;
+}
+
+h2 {
+  color: #1d4ed8;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.config-section {
+  margin-bottom: 35px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.config-section:last-child {
+  border-bottom: none;
+}
+
+h3 {
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.form-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+label {
+  width: 130px;
+  font-weight: 500;
+  color: #444;
+}
+
+input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+  transition: 0.2s;
+}
+
+input:focus {
+  border-color: #1d4ed8;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn.salvar {
+  background-color: #2563eb;
+}
+
+.btn.senha {
+  background-color: #1e40af;
+}
+
+.btn.tema {
+  background-color: #475569;
+}
+
+.btn.sair {
+  background-color: #dc2626;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+

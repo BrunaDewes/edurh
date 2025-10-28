@@ -1,0 +1,79 @@
+.prof-container {
+  padding: 20px;
+  background: #f9fafb;
+  min-height: 100vh;
+}
+
+h2 {
+  color: #1d4ed8;
+  margin-bottom: 20px;
+}
+
+.prof-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.prof-form input,
+.prof-form select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  flex: 1;
+}
+
+.prof-form button {
+  background-color: #1d4ed8;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.prof-form button:hover {
+  background-color: #2563eb;
+}
+
+.prof-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.prof-table th,
+.prof-table td {
+  border: 1px solid #e5e7eb;
+  padding: 10px;
+  text-align: center;
+}
+
+.prof-table th {
+  background: #f1f5f9;
+}
+
+.prof-table button {
+  margin: 0 5px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.prof-table button:first-child {
+  background-color: #facc15;
+}
+
+.prof-table button:last-child {
+  background-color: #ef4444;
+  color: white;
+}
+
+.mensagem {
+  color: #1d4ed8;
+  margin-bottom: 10px;
+}
