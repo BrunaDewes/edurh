@@ -1,13 +1,33 @@
 package com.projetoextensao.edurh.controller;
 
-import com.projetoextensao.edurh.model.*;
-import com.projetoextensao.edurh.repository.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import com.projetoextensao.edurh.model.Disciplina;
+import com.projetoextensao.edurh.model.Matriz;
+import com.projetoextensao.edurh.model.Professor;
+import com.projetoextensao.edurh.model.Turma;
+import com.projetoextensao.edurh.repository.DisciplinaRepository;
+import com.projetoextensao.edurh.repository.MatrizRepository;
+import com.projetoextensao.edurh.repository.ProfessorRepository;
 
 @RestController
 @RequestMapping("/professores")
@@ -65,23 +85,77 @@ public class ProfessorController {
     // ---------------- Vincular professor a uma disciplina ----------------
     @PostMapping("/{professorId}/disciplinas/{disciplinaId}")
     public ResponseEntity<?> adicionarProfessorADisciplina(@PathVariable Long professorId, @PathVariable Long disciplinaId) {
-    Optional<Professor> professorOpt = professorRepository.findById(professorId);
-    Optional<Disciplina> disciplinaOpt = disciplinaRepository.findById(disciplinaId);
+        Optional<Professor> professorOpt = professorRepository.findById(professorId);
+        Optional<Disciplina> disciplinaOpt = disciplinaRepository.findById(disciplinaId);
 
-    if (professorOpt.isPresent() && disciplinaOpt.isPresent()) {
-        Professor professor = professorOpt.get();
-        Disciplina disciplina = disciplinaOpt.get();
+        if (professorOpt.isPresent() && disciplinaOpt.isPresent()) {
+            Professor professor = professorOpt.get();
+            Disciplina disciplina = disciplinaOpt.get();
 
-        disciplina.getProfessores().add(professor);
-        professor.getDisciplinas().add(disciplina);
+            disciplina.getProfessores().add(professor);
+            professor.getDisciplinas().add(disciplina);
 
-        disciplinaRepository.save(disciplina);
-        professorRepository.save(professor);
+            disciplinaRepository.save(disciplina);
+            professorRepository.save(professor);
 
-        return ResponseEntity.ok("Professor adicionado à disciplina!");
+            return ResponseEntity.ok("Professor adicionado à disciplina!");
+        }
+        return ResponseEntity.notFound().build();
     }
-    return ResponseEntity.notFound().build();
-}
+
+    // ---------------- Vincular MATRIZ ao PROFESSOR ----------------
+    @PostMapping("/{professorId}/matrizes/{matrizId}")
+    public ResponseEntity<?> adicionarMatrizAoProfessor(
+            @PathVariable Long professorId,
+            @PathVariable Long matrizId) {
+
+        Optional<Professor> profOpt = professorRepository.findById(professorId);
+        Optional<Matriz> matrizOpt = matrizRepository.findById(matrizId);
+
+        if (profOpt.isEmpty() || matrizOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Professor professor = profOpt.get();
+        Matriz matriz = matrizOpt.get();
+
+        // evita duplicar
+        if (!professor.getMatrizes().contains(matriz)) {
+            professor.getMatrizes().add(matriz);
+            professorRepository.save(professor);
+        }
+
+        return ResponseEntity.ok("Matriz adicionada ao professor!");
+    }
+
+    // ---------------- Remover MATRIZ do PROFESSOR ----------------
+    @DeleteMapping("/{professorId}/matrizes/{matrizId}")
+    public ResponseEntity<?> removerMatrizDoProfessor(
+            @PathVariable Long professorId,
+            @PathVariable Long matrizId) {
+
+        Optional<Professor> profOpt = professorRepository.findById(professorId);
+        Optional<Matriz> matrizOpt = matrizRepository.findById(matrizId);
+
+        if (profOpt.isEmpty() || matrizOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Professor professor = profOpt.get();
+        Matriz matriz = matrizOpt.get();
+
+        if (professor.getMatrizes() != null &&
+            professor.getMatrizes().contains(matriz)) {
+
+            professor.getMatrizes().remove(matriz);
+            professorRepository.save(professor);
+        }
+
+        return ResponseEntity.ok("Matriz removida do professor!");
+    }
+
+
+//---------------------- Relatórios -------------------------------------------------------------------------------------------
 
     // ---------------- Relatório: CH por professor (com preparação de 16h) ----------------
     @GetMapping("/relatorio/ch")

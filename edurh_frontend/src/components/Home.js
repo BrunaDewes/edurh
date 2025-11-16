@@ -147,6 +147,7 @@ export default function Home() {
             <li onClick={() => navigate("/matrizes")}>📊 Matrizes</li>
             <li onClick={() => navigate("/turmas")}>🏫 Turmas</li>
             <li onClick={() => navigate("/disciplinas")}>📝 Disciplinas</li>
+            <li onClick={() => navigate("/relatorios")}>🗃️ Relatórios</li>
             <li onClick={() => navigate("/configuracoes")}>⚙️ Configurações</li>
           </ul>
         </aside>

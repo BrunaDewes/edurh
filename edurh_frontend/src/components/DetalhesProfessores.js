@@ -43,16 +43,19 @@ export default function DetalhesProfessor() {
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(
-        `${API_BASE_URL}/professores/${id}/matriz/${matrizId}`,
+        `${API_BASE_URL}/professores/${id}/matrizes/${matrizId}`,
         { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.ok) {
         setMensagem("Matriz removida com sucesso!");
         carregarProfessor();
-      } else {
+        setTimeout(() => setMensagem(""), 3000);
+      } 
+      else {
         setMensagem("Erro ao remover matriz.");
       }
-    } catch {
+    } 
+    catch {
       setMensagem("Erro ao conectar com o servidor.");
     }
   };
@@ -80,17 +83,18 @@ export default function DetalhesProfessor() {
           <table style={styles.table}>
             <thead>
               <tr>
-                <th>Tipo da Matriz</th>
-                <th>Carga Horária</th>
-                <th>Ação</th>
+                <th style={styles.th}>Tipo da Matriz</th>
+                <th style={styles.th}>Carga Horária</th>
+                <th style={styles.th}>Ação</th>
               </tr>
             </thead>
+
             <tbody>
               {professor.matrizes.map((m) => (
                 <tr key={m.id}>
-                  <td>{m.tipo}</td>
-                  <td>{m.cargaHoraria}h</td>
-                  <td>
+                  <td style={styles.td}>{m.tipo}</td>
+                  <td style={styles.td}>{m.cargaHoraria}h</td>
+                  <td style={styles.td}>
                     <button
                       style={styles.excluirBtn}
                       onClick={() => excluirMatriz(m.id)}

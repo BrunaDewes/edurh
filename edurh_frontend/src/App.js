@@ -13,6 +13,7 @@ import Turmas from "./components/Turmas";
 import Disciplinas from "./components/Disciplinas";
 import Configuracoes from "./components/Configuracoes";
 import DetalhesProfessores from "./components/DetalhesProfessores";
+import Relatorios from "./components/Relatorios";
 
 
 function App() {
@@ -40,6 +41,7 @@ function App() {
         <Route path="/disciplinas" element={<Disciplinas />} />
         <Route path="/configuracoes" element={<Configuracoes />} />
         <Route path="/professores/:id" element={<DetalhesProfessores />} />
+        <Route path="/relatorios" element={<Relatorios />} />
 
       </Routes>
     </Router>

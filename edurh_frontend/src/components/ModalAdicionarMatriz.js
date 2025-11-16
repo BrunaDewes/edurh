@@ -35,7 +35,7 @@ export default function ModalAdicionarMatriz({ professorId, onClose, onSuccess }
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(
-        `${API_BASE_URL}/professores/${professorId}/matriz/${selecionada}`,
+        `${API_BASE_URL}/professores/${professorId}/matrizes/${selecionada}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
