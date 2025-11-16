@@ -18,7 +18,14 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 export default function Home() {
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState(null);
-  const [stats, setStats] = useState({ professores: 0, matrizes: 0, turmas: 0 });
+
+  const [stats, setStats] = useState({
+    professores: 0,
+    matrizes: 0,
+    turmas: 0,
+    disciplinas: 0,
+  });
+
   const [porTurno, setPorTurno] = useState({});
   const [mensagem, setMensagem] = useState("");
 
@@ -48,30 +55,44 @@ export default function Home() {
   const carregarEstatisticas = async () => {
     try {
       const token = localStorage.getItem("token");
-      const [profRes, matrizRes, turmaRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/professores`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${API_BASE_URL}/matrizes`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${API_BASE_URL}/turmas`, { headers: { Authorization: `Bearer ${token}` } }),
+
+      //1) busca resumo simples no /dashboard/estatisticas
+      //2) busca lista de professores pra montar o gráfico por turno
+      const [statsRes, profRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/dashboard/estatisticas`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API_BASE_URL}/professores`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
 
-      const profs = await profRes.json();
-      const matrizes = await matrizRes.json();
-      const turmas = await turmaRes.json();
+      if (!statsRes.ok) {
+        const text = await statsRes.text();
+        throw new Error(text || `HTTP ${statsRes.status}`);
+      }
+
+      const statsData = await statsRes.json();
 
       setStats({
-        professores: profs.length || 0,
-        matrizes: matrizes.length || 0,
-        turmas: turmas.length || 0,
+        professores: statsData.professores || 0,
+        matrizes: statsData.matrizes || 0,
+        turmas: statsData.turmas || 0,
+        disciplinas: statsData.disciplinas || 0, // se o backend ainda não mandar, só fica 0
       });
 
-      // 📊 Conta professores por turno
+      const profs = await profRes.json();
+
+      //Conta professores por turno com base na lista de professores
       const contagemTurno = { MANHA: 0, TARDE: 0, NOTURNO: 0, INTEGRAL: 0 };
       profs.forEach((p) => {
-        if (contagemTurno[p.turno]) contagemTurno[p.turno]++;
+        if (p.turno && contagemTurno[p.turno] !== undefined) {
+          contagemTurno[p.turno]++;
+        }
       });
+
       setPorTurno(contagemTurno);
-    } catch (error){
-      //setMensagem("Erro ao carregar estatísticas.");
+    } catch (error) {
       console.error("Erro detalhado:", error);
       setMensagem("Erro ao carregar estatísticas: " + error.message);
     }
@@ -122,7 +143,6 @@ export default function Home() {
       <div className="main-layout">
         <aside className="sidebar">
           <ul>
-            <li onClick={() => navigate("/home")}>🏠 Início</li>
             <li onClick={() => navigate("/professores")}>👩‍🏫 Professores</li>
             <li onClick={() => navigate("/matrizes")}>📊 Matrizes</li>
             <li onClick={() => navigate("/turmas")}>🏫 Turmas</li>
@@ -157,6 +177,11 @@ export default function Home() {
               <span className="icon">🏫</span>
               <h3>{stats.turmas}</h3>
               <p>Turmas</p>
+            </div>
+            <div className="card">
+              <span className="icon">📝</span>
+              <h3>{stats.disciplinas}</h3>
+              <p>Disciplinas</p>
             </div>
           </div>
 

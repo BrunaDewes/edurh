@@ -1,6 +1,6 @@
 package com.projetoextensao.edurh.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,7 +18,7 @@ public class SecurityConfig {
         .cors(cors -> {})
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/auth/**", "/usuarios/**").permitAll()
-            .requestMatchers("/professores/**", "/matrizes/**", "/turmas/**", "/disciplinas/**", "/configuracoes/**").authenticated()
+            .requestMatchers("/professores/**", "/matrizes/**", "/turmas/**", "/disciplinas/**", "/configuracoes/**", "/dashboard/**").authenticated()
             .anyRequest().denyAll()
         )
         .addFilterBefore(new JwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

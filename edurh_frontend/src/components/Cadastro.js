@@ -9,7 +9,7 @@ const Cadastro = () => {
   const [message, setMessage] = useState('');
 
   const validarSenha = (senha) => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_]).{8,}$/;
     return regex.test(senha);
   };
 
@@ -72,16 +72,18 @@ const Cadastro = () => {
                 onChange={(e) => setSenha(e.target.value)}
                 required
             />
-            <small className="password-rules">
-                A senha deve conter:
-                <ul>
+          </div>
+
+          <small className="password-rules">
+              A senha deve conter:
+              <ul>
                 <li>No mínimo 8 caracteres</li>
                 <li>Pelo menos 1 letra maiúscula</li>
                 <li>Pelo menos 1 letra minúscula</li>
-                <li>Pelo menos 1 caractere especial (!@#$%^&*)</li>
-                </ul>
-            </small>
-          </div>
+                <li>Pelo menos 1 caractere especial (!@#$%^_&*)</li>
+              </ul>
+          </small>
+          
           <button type="submit">Cadastrar</button>
         </form>
         {message && <p className="message">{message}</p>}
