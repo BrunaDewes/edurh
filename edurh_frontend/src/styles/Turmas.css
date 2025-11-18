@@ -1,0 +1,151 @@
+.turmas-container {
+  padding: 30px;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+.turmas-titulo {
+  color: #1d4ed8;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+/* botão Nova Turma embaixo do título */
+.turmas-top-actions {
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.turmas-nova-btn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.turmas-nova-btn:hover {
+  background: #1d4ed8;
+}
+
+.turmas-erro {
+  color: red;
+  margin-bottom: 10px;
+}
+
+/* Tabela */
+.turmas-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.turmas-th {
+  background: #1d4ed8;
+  color: white;
+  padding: 10px;
+  text-align: center;
+}
+
+.turmas-td {
+  padding: 10px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+/* Modal */
+.turmas-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.turmas-modal {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  width: 400px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.turmas-modal-titulo {
+  margin-bottom: 15px;
+  color: #1d4ed8;
+}
+
+.turmas-form-group {
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.turmas-input {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.turmas-modal-actions {
+  margin-top: 15px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.turmas-salvar-btn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.turmas-cancelar-btn {
+  background: #9ca3af;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Botões de ação na tabela */
+.turmas-acao-detalhes,
+.turmas-acao-editar,
+.turmas-acao-excluir {
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+/* cores específicas */
+.turmas-acao-detalhes {
+  background: #0ea5e9;
+  color: #fff;
+}
+
+.turmas-acao-editar {
+  background: #facc15;
+  color: #000;
+}
+
+.turmas-acao-excluir {
+  background: #ef4444;
+  color: #fff;
+}

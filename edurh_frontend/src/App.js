@@ -10,6 +10,7 @@ import NotFoundPage from "./components/NotFoundPage";
 import Professores from "./components/Professores";
 import Matrizes from "./components/Matrizes";
 import Turmas from "./components/Turmas";
+import DetalhesTurma from "./components/DetalhesTurma";
 import Disciplinas from "./components/Disciplinas";
 import Configuracoes from "./components/Configuracoes";
 import DetalhesProfessores from "./components/DetalhesProfessores";
@@ -38,6 +39,7 @@ function App() {
         <Route path="/professores" element={<Professores />} />
         <Route path="/matrizes" element={<Matrizes />} />
         <Route path="/turmas" element={<Turmas />} />
+        <Route path="/turmas/:id" element={<DetalhesTurma />} />
         <Route path="/disciplinas" element={<Disciplinas />} />
         <Route path="/configuracoes" element={<Configuracoes />} />
         <Route path="/professores/:id" element={<DetalhesProfessores />} />

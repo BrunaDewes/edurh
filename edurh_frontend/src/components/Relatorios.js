@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { API_BASE_URL } from "../config";
+import BotaoVoltar from "./BotaoVoltar"; 
 
 export default function Relatorios() {
   const [selectedReport, setSelectedReport] = useState(null);
@@ -229,16 +230,9 @@ export default function Relatorios() {
 
   return (
     <div style={styles.page}>
-
       <div style={styles.sidebar}>
         {/* Botão dentro da caixinha */}
-        <button
-            style={styles.voltarBtn}
-            onClick={() => window.location.href = "/home"}
-            >
-            ← Voltar
-        </button>
-
+        <BotaoVoltar destino="/home" />
 
         <h2 style={styles.titulo}>📊 Relatórios</h2>
         <button
@@ -320,16 +314,6 @@ const styles = {
     color: "#fff",
     fontWeight: "600",
   },
-  voltarBtn: {
-    background: "#76a3f7ff",
-    border: "none",
-    padding: "8px 16px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    marginBottom: "20px",
-    color: "white",
-    fontWeight: "600",
-},
   content: {
     flex: 1,
     background: "#f9fafb",

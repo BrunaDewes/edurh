@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+
 @Entity
 public class Turma {
     @Id
@@ -14,9 +17,11 @@ public class Turma {
 
     @ManyToOne
     @JoinColumn(name = "matriz_id")
+    @JsonIgnoreProperties("turmas")
     private Matriz matriz;
 
     @ManyToMany(mappedBy = "turmas")
+    @JsonIgnoreProperties("turmas")
     private Set<Disciplina> disciplinas = new HashSet<>();
 
     // getters e setters

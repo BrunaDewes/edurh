@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 public class Professor {
 
@@ -24,6 +26,7 @@ public class Professor {
     private Set<Matriz> matrizes = new HashSet<>();
 
     @ManyToMany(mappedBy = "professores")
+    @JsonIgnoreProperties("professores")
     private Set<Disciplina> disciplinas = new HashSet<>();
     
     // getters e setters

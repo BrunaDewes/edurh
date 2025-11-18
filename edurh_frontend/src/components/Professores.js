@@ -108,7 +108,7 @@ export default function Professores() {
 
   return (
     <div className="prof-container">
-        <BotaoVoltar />
+        <BotaoVoltar destino="/home" />
       <h2>👩‍🏫 Gerenciar Professores</h2>
 
       <form className="prof-form" onSubmit={salvarProfessor}>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "../styles/Configuracoes.css";
+import BotaoVoltar from "./BotaoVoltar"; 
 
 export default function Configuracoes() {
   const [nome, setNome] = useState("Bruna");
@@ -27,6 +28,8 @@ export default function Configuracoes() {
 
   return (
     <div className="config-container">
+      <BotaoVoltar destino="/home" />
+      
       <h2>⚙️ Configurações da Conta</h2>
 
       <div className="config-section">

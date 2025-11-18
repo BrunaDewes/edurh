@@ -95,7 +95,7 @@ export default function Matrizes() {
 
   return (
     <div className="matrizes-container">
-      <BotaoVoltar />
+      <BotaoVoltar destino="/home" />
       <h2>📚 Gerenciar Matrizes</h2>
 
       <form className="matrizes-form" onSubmit={salvarMatriz}>

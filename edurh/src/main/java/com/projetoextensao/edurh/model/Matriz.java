@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 public class Matriz {
 
@@ -19,6 +21,7 @@ public class Matriz {
     private Turno turno; // INTEGRAL, MANHA, TARDE, NOTURNO
 
     @OneToMany(mappedBy = "matriz", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("matriz")
     private Set<Turma> turmas = new HashSet<>();
 
     // getters e setters

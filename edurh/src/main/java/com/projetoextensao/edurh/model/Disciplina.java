@@ -3,6 +3,8 @@ package com.projetoextensao.edurh.model;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -20,6 +22,7 @@ public class Disciplina {
         joinColumns = @JoinColumn(name = "disciplina_id"),
         inverseJoinColumns = @JoinColumn(name = "turma_id")
     )
+    @JsonIgnoreProperties("disciplinas")
     private Set<Turma> turmas = new HashSet<>();
 
     // Uma disciplina pode ter vários professores
@@ -29,6 +32,7 @@ public class Disciplina {
         joinColumns = @JoinColumn(name = "disciplina_id"),
         inverseJoinColumns = @JoinColumn(name = "professor_id")
     )
+    @JsonIgnoreProperties("disciplinas")
     private Set<Professor> professores = new HashSet<>(); // pode ter 1 ou mais professores
 
     private int cargaHoraria; // CH dessa disciplina
