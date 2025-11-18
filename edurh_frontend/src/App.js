@@ -12,6 +12,7 @@ import Matrizes from "./components/Matrizes";
 import Turmas from "./components/Turmas";
 import DetalhesTurma from "./components/DetalhesTurma";
 import Disciplinas from "./components/Disciplinas";
+import DetalhesDisciplina from "./components/DetalhesDisciplina";
 import Configuracoes from "./components/Configuracoes";
 import DetalhesProfessores from "./components/DetalhesProfessores";
 import Relatorios from "./components/Relatorios";
@@ -41,6 +42,7 @@ function App() {
         <Route path="/turmas" element={<Turmas />} />
         <Route path="/turmas/:id" element={<DetalhesTurma />} />
         <Route path="/disciplinas" element={<Disciplinas />} />
+        <Route path="/disciplinas/:id" element={<DetalhesDisciplina />} />
         <Route path="/configuracoes" element={<Configuracoes />} />
         <Route path="/professores/:id" element={<DetalhesProfessores />} />
         <Route path="/relatorios" element={<Relatorios />} />

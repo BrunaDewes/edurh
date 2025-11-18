@@ -1,0 +1,133 @@
+.disciplinas-container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+}
+
+.disciplinas-titulo {
+  font-size: 24px;
+  margin-bottom: 15px;
+}
+
+.disciplinas-nova {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 15px;
+}
+
+.disciplinas-nova:hover {
+  opacity: 0.9;
+}
+
+.disciplinas-erro {
+  color: red;
+  margin-bottom: 10px;
+}
+
+.disciplinas-tabela {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.disciplinas-tabela th,
+.disciplinas-tabela td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.disciplinas-tabela th {
+  background-color: #e0e7ff;
+  text-align: left;
+}
+
+.disciplinas-td {
+  vertical-align: middle;
+}
+
+.disciplinas-acao-detalhes,
+.disciplinas-acao-editar,
+.disciplinas-acao-excluir {
+  margin-right: 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.disciplinas-acao-detalhes {
+  background-color: #e5e7eb;
+}
+
+.disciplinas-acao-editar {
+  background-color: #facc15;
+}
+
+.disciplinas-acao-excluir {
+  background-color: #ef4444;
+  color: white;
+}
+
+.disciplinas-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.disciplinas-modal {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  width: 380px;
+  max-width: 95%;
+}
+
+.disciplinas-modal-titulo {
+  margin-bottom: 15px;
+}
+
+.disciplinas-form-group {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.disciplinas-input {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.disciplinas-botoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.disciplinas-salvar {
+  background-color: #16a34a;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.disciplinas-cancelar {
+  background-color: #9ca3af;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
