@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { API_BASE_URL } from '../config';
+import { useNavigate } from 'react-router-dom';
 import "../styles/Login.css"; // reutilizando estilo
 
 const Cadastro = () => {
@@ -7,6 +8,7 @@ const Cadastro = () => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   const validarSenha = (senha) => {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_]).{8,}$/;
@@ -30,7 +32,8 @@ const Cadastro = () => {
       });
 
       if (response.ok) {
-        setMessage("Cadastro realizado com sucesso! Você já pode fazer login.");
+        alert("Cadastro realizado com sucesso! Você será redirecionado para o login."); 
+        navigate('/login');
       } else {
         const errorText = await response.text();
         setMessage(`Erro: ${errorText}`);
