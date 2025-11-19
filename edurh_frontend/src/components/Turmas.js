@@ -181,7 +181,9 @@ export default function Turmas() {
                   onChange={(e) => setMatrizId(e.target.value)}
                 >
                   <option value="">Selecione uma matriz</option>
-                  {matrizes.map((m) => (
+                  {matrizes
+                  .filter((m) => m && typeof m === "object")
+                  .map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.tipo} ({m.turno})
                     </option>

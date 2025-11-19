@@ -116,9 +116,14 @@ export default function DetalhesProfessor() {
 
   if (!professor) return <p style={styles.loading}>Carregando...</p>;
 
+  // garante que só objetos completos entram aqui
+  const disciplinasProfessor = (professor.disciplinas || []).filter(
+    (d) => d && typeof d === "object"
+  );
+
   //evitar mostrar no select disciplinas já vinculadas
   const idsDisciplinasProfessor = new Set(
-    (professor.disciplinas || []).map((d) => d.id)
+    (disciplinasProfessor || []).map((d) => d.id)
   );
   const disciplinasDisponiveis = todasDisciplinas.filter(
     (d) => !idsDisciplinasProfessor.has(d.id)
@@ -152,7 +157,9 @@ export default function DetalhesProfessor() {
             </thead>
 
             <tbody>
-              {professor.matrizes.map((m) => (
+              {professor.matrizes
+              .filter((m) => m && typeof m === "object") 
+              .map((m) => (
                 <tr key={m.id}>
                   <td style={styles.td}>{m.tipo}</td>
                   <td style={styles.td}>{m.cargaHoraria}h</td>
@@ -189,9 +196,9 @@ export default function DetalhesProfessor() {
       <div style={{ marginTop: "30px" }}>
         <h3>📚 Disciplinas que esse professor ministra</h3>
 
-        {professor.disciplinas && professor.disciplinas.length > 0 ? (
+        {disciplinasProfessor && disciplinasProfessor.length > 0 ? (
           <ul>
-            {professor.disciplinas.map((d) => (
+            {disciplinasProfessor.map((d) => (
               <li key={d.id}>
                 {d.nome}{" "}
                 {d.cargaHoraria != null ? `(${d.cargaHoraria}h)` : ""}

@@ -7,8 +7,12 @@ export default function DetalhesTurma() {
   const { id } = useParams();
   const [turma, setTurma] = useState(null);
   const [erro, setErro] = useState("");
+  const [todasDisciplinas, setTodasDisciplinas] = useState([]);
+  const [disciplinaSelecionada, setDisciplinaSelecionada] = useState("");
+  const [mensagem, setMensagem] = useState("");
 
   useEffect(() => {
+    // carregar a turma
     const carregarTurma = async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/turmas/${id}`, {
@@ -28,12 +32,98 @@ export default function DetalhesTurma() {
       }
     };
 
+    // carregar todas as disciplinas para o select
+    const carregarDisciplinas = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/disciplinas`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        if (!res.ok) {
+          console.error("Erro ao carregar disciplinas.");
+          return;
+        }
+        const data = await res.json();
+        setTodasDisciplinas(data);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
     carregarTurma();
+    carregarDisciplinas();
   }, [id]);
+
+  // handler para vincular disciplina à turma
+  const vincularDisciplinaATurma = async (e) => {
+    e.preventDefault();
+    setMensagem("");
+    setErro("");
+
+    if (!disciplinaSelecionada) {
+      setErro("Selecione uma disciplina.");
+      setTimeout(() => setErro(""), 3000);
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/disciplinas/${disciplinaSelecionada}/turmas/${id}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      const txt = await res.text();
+
+      if (!res.ok) {
+        setErro(txt || "Erro ao vincular disciplina à turma.");
+      } else {
+        setMensagem(txt || "Disciplina vinculada à turma!");
+        setDisciplinaSelecionada("");
+
+        // recarrega a turma para atualizar a lista de disciplinas
+        try {
+          const resTurma = await fetch(`${API_BASE_URL}/turmas/${id}`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          });
+          if (resTurma.ok) {
+            const dataTurma = await resTurma.json();
+            setTurma(dataTurma);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      setTimeout(() => {
+        setMensagem("");
+        setErro("");
+      }, 3000);
+    } catch (e) {
+      console.error(e);
+      setErro("Erro de conexão com o servidor.");
+      setTimeout(() => setErro(""), 3000);
+    }
+  };
 
   if (!turma && !erro) {
     return <p style={{ padding: "30px" }}>Carregando turma...</p>;
   }
+
+  // calcular disciplinas ainda não vinculadas à turma
+  const idsDisciplinasTurma = new Set(
+    (turma?.disciplinas || []).map((d) => d.id)
+  );
+  const disciplinasDisponiveis = todasDisciplinas.filter(
+    (d) => !idsDisciplinasTurma.has(d.id)
+  );
 
   return (
     <div style={styles.container}>
@@ -42,6 +132,7 @@ export default function DetalhesTurma() {
       <h2 style={styles.titulo}>📋 Detalhes da Turma</h2>
 
       {erro && <p style={styles.erro}>{erro}</p>}
+      {mensagem && <p style={styles.msg}>{mensagem}</p>}
 
       {turma && (
         <>
@@ -50,8 +141,7 @@ export default function DetalhesTurma() {
               <strong>Nome:</strong> {turma.nome}
             </p>
             <p>
-              <strong>Matriz:</strong>{" "}
-              {turma.matriz ? turma.matriz.tipo : "—"}
+              <strong>Matriz:</strong> {turma.matriz ? turma.matriz.tipo : "—"}
             </p>
             {turma.matriz && (
               <>
@@ -78,23 +168,65 @@ export default function DetalhesTurma() {
                   </tr>
                 </thead>
                 <tbody>
-                  {turma.disciplinas.map((disc) => (
-                    <tr key={disc.id}>
-                      <td style={styles.td}>{disc.nome}</td>
-                      <td style={styles.td}>{disc.cargaHoraria}h</td>
-                      <td style={styles.td}>
-                        {Array.isArray(disc.professores) &&
-                        disc.professores.length > 0
-                          ? disc.professores.map((p) => p.nome).join(", ")
-                          : "—"}
-                      </td>
-                    </tr>
-                  ))}
+                  {turma.disciplinas
+                    .filter((disc) => disc && typeof disc === "object")
+                    .map((disc) => (
+                      <tr key={disc.id}>
+                        <td style={styles.td}>{disc.nome}</td>
+                        <td style={styles.td}>{disc.cargaHoraria}h</td>
+                        <td style={styles.td}>
+                          {Array.isArray(disc.professores) &&
+                          disc.professores.filter(
+                            (p) => p && typeof p === "object"
+                          ).length > 0
+                            ? disc.professores
+                                .filter((p) => p && typeof p === "object")
+                                .map((p) => p.nome)
+                                .join(", ")
+                            : "—"}
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             ) : (
               <p>Não há disciplinas vinculadas a esta turma.</p>
             )}
+
+            {/* formulário para adicionar disciplina à turma */}
+            <form
+              onSubmit={vincularDisciplinaATurma}
+              style={{ marginTop: "15px", display: "flex", gap: "10px" }}
+            >
+              <select
+                value={disciplinaSelecionada}
+                onChange={(e) => setDisciplinaSelecionada(e.target.value)}
+                style={{ flex: 1, padding: "6px 8px", borderRadius: "8px" }}
+              >
+                <option value="">Selecione uma disciplina</option>
+                {disciplinasDisponiveis.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.nome}{" "}
+                    {d.cargaHoraria != null ? `(${d.cargaHoraria}h)` : ""}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                type="submit"
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  border: "none",
+                  background: "#2563eb",
+                  color: "#fff",
+                  cursor: "pointer",
+                  fontWeight: "600",
+                }}
+              >
+                ➕ Adicionar disciplina
+              </button>
+            </form>
           </div>
         </>
       )}
@@ -118,18 +250,23 @@ const styles = {
     color: "red",
     marginBottom: "10px",
   },
+  msg: {
+    color: "#2563eb",
+    marginBottom: "10px",
+    textAlign: "center",
+  },
   infoBox: {
     background: "#f9fafb",
     padding: "15px",
     borderRadius: "10px",
     marginBottom: "20px",
-    boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.05)",
   },
   disciplinasBox: {
     background: "#fff",
     padding: "15px",
     borderRadius: "10px",
-    boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.05)",
   },
   table: {
     width: "100%",

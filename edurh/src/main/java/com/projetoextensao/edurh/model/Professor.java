@@ -5,13 +5,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+/*import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 @JsonIdentityInfo(
     generator = ObjectIdGenerators.PropertyGenerator.class,
     property = "id"
-)
+)/*/
 @Entity
 public class Professor {
 
@@ -29,7 +29,7 @@ public class Professor {
         joinColumns = @JoinColumn(name = "professor_id"),
         inverseJoinColumns = @JoinColumn(name = "matriz_id")
     )
-    @JsonIgnoreProperties("professores")
+    @JsonIgnoreProperties("turmas")
     private Set<Matriz> matrizes = new HashSet<>();
 
     @ManyToMany(mappedBy = "professores")

@@ -79,9 +79,11 @@ export default function DetalhesDisciplina() {
 
         <div style={styles.section}>
           <h3>👩‍🏫 Professores vinculados</h3>
-          {disciplina.professores && disciplina.professores.length > 0 ? (
+          {disciplina.professores && disciplina.professores.filter((p) => p && typeof p === "object").length > 0 ? (
             <ul>
-              {disciplina.professores.map((p) => (
+              {disciplina.professores
+              .filter((p) => p && typeof p === "object")
+              .map((p) => (
                 <li key={p.id}>
                   {p.nome} {p.turno ? `(${p.turno})` : ""}
                 </li>
@@ -94,9 +96,11 @@ export default function DetalhesDisciplina() {
 
         <div style={styles.section}>
           <h3>🏫 Turmas vinculadas</h3>
-          {disciplina.turmas && disciplina.turmas.length > 0 ? (
+          {disciplina.turmas && disciplina.turmas.filter((t) => t && typeof t === "object").length > 0 ? (
             <ul>
-              {disciplina.turmas.map((t) => (
+              {disciplina.turmas
+              .filter((t) => t && typeof t === "object")
+              .map((t) => (
                 <li key={t.id}>{t.nome}</li>
               ))}
             </ul>
