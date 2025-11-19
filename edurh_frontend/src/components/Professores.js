@@ -153,18 +153,20 @@ export default function Professores() {
               <td colSpan="5">Nenhum professor cadastrado.</td>
             </tr>
           ) : (
-            professores.map((prof) => (
-              <tr key={prof.id}>
-                <td>{prof.id}</td>
-                <td>{prof.nome}</td>
-                <td>{prof.cargaHoraria}h</td>
-                <td>{prof.turno}</td>
-                <td>
-                  <button onClick={() => editarProfessor(prof)}>Editar</button>
-                  <button onClick={() => deletarProfessor(prof.id)}>Excluir</button>
-                  <button onClick={() => navigate(`/professores/${prof.id}`)}>Detalhes</button>
-                </td>
-              </tr>
+            professores
+              .filter((prof) => prof && typeof prof === "object") 
+              .map((prof) => (
+                <tr key={prof.id}>
+                  <td>{prof.id}</td>
+                  <td>{prof.nome}</td>
+                  <td>{prof.cargaHoraria}h</td>
+                  <td>{prof.turno}</td>
+                  <td>
+                    <button onClick={() => editarProfessor(prof)}>Editar</button>
+                    <button onClick={() => deletarProfessor(prof.id)}>Excluir</button>
+                    <button onClick={() => navigate(`/professores/${prof.id}`)}>Detalhes</button>
+                  </td>
+                </tr>
             ))
           )}
         </tbody>

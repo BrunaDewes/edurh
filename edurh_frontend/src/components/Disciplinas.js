@@ -199,7 +199,9 @@ export default function Disciplinas() {
           </tr>
         </thead>
         <tbody>
-          {disciplinas.map((d) => (
+          {disciplinas
+          .filter((d) => d && typeof d === "object")
+          .map((d) => (
             <tr key={d.id}>
               <td className="disciplinas-td">{d.nome}</td>
               <td className="disciplinas-td">

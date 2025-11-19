@@ -142,7 +142,9 @@ export default function Matrizes() {
               <td colSpan="5">Nenhuma matriz cadastrada.</td>
             </tr>
           ) : (
-            matrizes.map((m) => (
+            matrizes
+            .filter((m) => m && typeof m === "object")
+            .map((m) => (
               <tr key={m.id}>
                 <td>{m.id}</td>
                 <td>{m.tipo}</td>

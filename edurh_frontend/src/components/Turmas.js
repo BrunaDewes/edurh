@@ -216,7 +216,9 @@ export default function Turmas() {
           </tr>
         </thead>
         <tbody>
-          {turmas.map((t) => (
+          {turmas
+          .filter((t) => t && typeof t === "object")
+          .map((t) => (
             <tr key={t.id}>
               <td className="turmas-td">{t.id}</td>
               <td className="turmas-td">{t.nome}</td>
