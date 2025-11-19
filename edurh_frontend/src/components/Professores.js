@@ -7,6 +7,7 @@ import BotaoVoltar from "./BotaoVoltar";
 
 export default function Professores() {
   const [professores, setProfessores] = useState([]);
+  const [busca, setBusca] = useState("");
   const [nome, setNome] = useState("");
   const [cargaHoraria, setCargaHoraria] = useState("");
   const [turno, setTurno] = useState("MANHA");
@@ -111,6 +112,21 @@ export default function Professores() {
         <BotaoVoltar destino="/home" />
       <h2>👩‍🏫 Gerenciar Professores</h2>
 
+      <input
+        type="text"
+        placeholder="🔍 Buscar professor por nome..."
+        value={busca}
+        onChange={(e) => setBusca(e.target.value)}
+        style={{
+          width: "100%",
+          padding: "10px",
+          marginBottom: "20px",
+          borderRadius: "8px",
+          border: "1px solid #ccc",
+          boxSizing: "border-box",
+        }}
+      />
+
       <form className="prof-form" onSubmit={salvarProfessor}>
         <input
           type="text"
@@ -155,6 +171,9 @@ export default function Professores() {
           ) : (
             professores
               .filter((prof) => prof && typeof prof === "object") 
+              .filter((prof) =>
+                prof.nome.toLowerCase().includes(busca.toLowerCase())
+              )
               .map((prof) => (
                 <tr key={prof.id}>
                   <td>{prof.id}</td>
