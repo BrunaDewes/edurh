@@ -13,21 +13,32 @@
   color: #fff;
   padding: 14px 40px;
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between;  /* título à esquerda, botão à direita */
   align-items: center;
   font-weight: 600;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  margin: 0;
+  white-space: nowrap;
 }
 
 .logout-btn {
   background-color: #2563eb;
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 8px 18px;
-  font-weight: 600;
+  border-radius: 6px;
+
+  padding: 12px 28px !important;   /* DIMINUI MUITO O TAMANHO */
+  font-size: 0.85rem;             /* Texto menor */
+  font-weight: 700;
+  width: auto !important;         /* Garante que nunca estique */
+  height: auto;
+  
   cursor: pointer;
+  white-space: nowrap;            /* NÃO quebra em duas linhas */
   transition: 0.3s;
+  display: inline-flex;           /* Fica do tamanho DO CONTEÚDO */
+  align-items: center;
+  justify-content: center;
 }
 
 .logout-btn:hover {
