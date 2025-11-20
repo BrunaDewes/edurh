@@ -103,6 +103,36 @@ public class ProfessorController {
         return ResponseEntity.notFound().build();
     }
 
+    // ---------------- Remover DISCIPLINA do PROFESSOR ----------------
+    @DeleteMapping("/{professorId}/disciplinas/{disciplinaId}")
+    public ResponseEntity<?> removerDisciplinaDoProfessor(
+            @PathVariable Long professorId,
+            @PathVariable Long disciplinaId) {
+
+        Optional<Professor> professorOpt = professorRepository.findById(professorId);
+        Optional<Disciplina> disciplinaOpt = disciplinaRepository.findById(disciplinaId);
+
+        if (professorOpt.isEmpty() || disciplinaOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Professor professor = professorOpt.get();
+        Disciplina disciplina = disciplinaOpt.get();
+
+        // Remove dos dois lados da relação ManyToMany
+        if (professor.getDisciplinas() != null) {
+            professor.getDisciplinas().remove(disciplina);
+        }
+        if (disciplina.getProfessores() != null) {
+            disciplina.getProfessores().remove(professor);
+        }
+
+        professorRepository.save(professor);
+        disciplinaRepository.save(disciplina);
+
+        return ResponseEntity.ok("Disciplina removida do professor!");
+    }
+
     // ---------------- Vincular MATRIZ ao PROFESSOR ----------------
     @PostMapping("/{professorId}/matrizes/{matrizId}")
     public ResponseEntity<?> adicionarMatrizAoProfessor(

@@ -1,5 +1,6 @@
 package com.projetoextensao.edurh.controller;
 
+import com.projetoextensao.edurh.model.Disciplina;
 import com.projetoextensao.edurh.model.Matriz;
 import com.projetoextensao.edurh.model.Turma;
 import com.projetoextensao.edurh.repository.MatrizRepository;
@@ -70,6 +71,36 @@ public class TurmaController {
                     return ResponseEntity.ok(turmaRepository.save(turma));
                 })
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    // ---------------- Remover DISCIPLINA da TURMA ----------------
+    @DeleteMapping("/{turmaId}/disciplinas/{disciplinaId}")
+    public ResponseEntity<?> removerDisciplinaDaTurma(
+            @PathVariable Long turmaId,
+            @PathVariable Long disciplinaId) {
+
+        Optional<Turma> turmaOpt = turmaRepository.findById(turmaId);
+        Optional<Disciplina> disciplinaOpt = disciplinaRepository.findById(disciplinaId);
+
+        if (turmaOpt.isEmpty() || disciplinaOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Turma turma = turmaOpt.get();
+        Disciplina disciplina = disciplinaOpt.get();
+
+        // remove dos dois lados do ManyToMany
+        if (turma.getDisciplinas() != null) {
+            turma.getDisciplinas().remove(disciplina);
+        }
+        if (disciplina.getTurmas() != null) {
+            disciplina.getTurmas().remove(turma);
+        }
+
+        turmaRepository.save(turma);
+        disciplinaRepository.save(disciplina);
+
+        return ResponseEntity.ok("Disciplina removida da turma!");
     }
 
     // DELETAR TURMA

@@ -113,6 +113,52 @@ export default function DetalhesTurma() {
     }
   };
 
+  const removerDisciplina = async (disciplinaId) => {
+    const confirmar = window.confirm(
+      "Deseja remover esta disciplina da turma?"
+    );
+    if (!confirmar) return;
+
+    try {
+      const token = localStorage.getItem("token");
+
+      // chama o endpoint do backend
+      const res = await fetch(
+        `${API_BASE_URL}/turmas/${id}/disciplinas/${disciplinaId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const txt = await res.text();
+
+      if (res.ok) {
+        // recarrega a turma para atualizar a lista de disciplinas
+        const resTurma = await fetch(`${API_BASE_URL}/turmas/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (resTurma.ok) {
+          const data = await resTurma.json();
+          setTurma(data);
+          setErro("");
+        } else {
+          setErro("Disciplina removida, mas houve erro ao recarregar a turma.");
+        }
+      } else {
+        setErro(txt || "Erro ao remover disciplina da turma.");
+      }
+    } catch (e) {
+      console.error(e);
+      setErro("Erro de conexão ao remover disciplina.");
+    }
+  };
+
   if (!turma && !erro) {
     return <p style={{ padding: "30px" }}>Carregando turma...</p>;
   }
@@ -175,6 +221,7 @@ export default function DetalhesTurma() {
                     <th style={styles.th}>Disciplina</th>
                     <th style={styles.th}>Carga Horária</th>
                     <th style={styles.th}>Professores</th>
+                    <th style={styles.th}>Ação</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -194,6 +241,14 @@ export default function DetalhesTurma() {
                                 .map((p) => p.nome)
                                 .join(", ")
                             : "—"}
+                        </td>
+                        <td style={styles.td}>
+                          <button
+                            style={styles.excluirBtn}
+                            onClick={() => removerDisciplina(disc.id)}
+                          >
+                            Remover
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -293,5 +348,13 @@ const styles = {
     border: "1px solid #ddd",
     padding: "8px",
     verticalAlign: "top",
+  },
+  excluirBtn: {
+    background: "#dc2626",
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    padding: "6px 10px",
+    cursor: "pointer",
   },
 };

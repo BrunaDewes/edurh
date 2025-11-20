@@ -133,6 +133,38 @@ export default function DetalhesProfessor() {
     (d) => d && typeof d === "object"
   );
 
+  const removerDisciplina = async (disciplinaId) => {
+    const confirmar = window.confirm("Deseja remover esta disciplina do professor?");
+    if (!confirmar) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${API_BASE_URL}/professores/${id}/disciplinas/${disciplinaId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const txt = await res.text();
+
+      if (res.ok) {
+        setMensagem(txt || "Disciplina removida!");
+        carregarProfessor();
+      } else {
+        setMensagem(txt || "Erro ao remover disciplina.");
+      }
+
+      setTimeout(() => setMensagem(""), 3000);
+    } catch (error) {
+      console.error(error);
+      setMensagem("Erro de conexão ao remover disciplina.");
+      setTimeout(() => setMensagem(""), 3000);
+    }
+  };
+
+
   //evitar mostrar no select disciplinas já vinculadas
   const idsDisciplinasProfessor = new Set(
     (disciplinasProfessor || []).map((d) => d.id)
@@ -232,14 +264,33 @@ export default function DetalhesProfessor() {
         <h3>📚 Disciplinas que esse professor ministra</h3>
 
         {disciplinasProfessor && disciplinasProfessor.length > 0 ? (
-          <ul>
-            {disciplinasProfessor.map((d) => (
-              <li key={d.id}>
-                {d.nome}{" "}
-                {d.cargaHoraria != null ? `(${d.cargaHoraria} per.)` : ""}
-              </li>
-            ))}
-          </ul>
+            <ul
+              style={{
+                listStyleType: "disc",
+                paddingLeft: "24px",
+                marginTop: "8px",
+              }}
+            >
+              {disciplinasProfessor.map((d) => (
+                <li
+                  key={d.id}
+                  style={styles.disciplinaItem}
+                >
+                  <div style={styles.disciplinaLinha}>
+                    <span>
+                      {d.nome} ({d.cargaHoraria} per.)
+                    </span>
+
+                    <button
+                      onClick={() => removerDisciplina(d.id)}
+                      style={styles.removerDisciplinaBtn}
+                    >
+                      Remover
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
         ) : (
           <p>Esse professor ainda não tem disciplinas vinculadas.</p>
         )}
@@ -335,6 +386,27 @@ const styles = {
     borderRadius: "6px",
     padding: "6px 10px",
     cursor: "pointer",
+  },
+  disciplinaItem: {
+    marginBottom: "6px",
+    listStyleType: "disc",
+  },
+  disciplinaLinha: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    maxWidth: "500px",
+    gap: "12px",
+  },
+  removerDisciplinaBtn: {
+    background: "#dc2626",
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    padding: "4px 10px",
+    cursor: "pointer",
+    width: "auto",
+    minWidth: "auto",
   },
   addBtn: {
     display: "block",
