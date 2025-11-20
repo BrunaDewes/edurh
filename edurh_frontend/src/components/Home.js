@@ -29,6 +29,9 @@ export default function Home() {
   const [porTurno, setPorTurno] = useState({});
   const [mensagem, setMensagem] = useState("");
 
+  const [profUltrapassados, setProfUltrapassados] = useState([]);
+  const [mostrarAlertaCH, setMostrarAlertaCH] = useState(true);
+
   useEffect(() => {
     carregarUsuario();
     carregarEstatisticas();
@@ -58,11 +61,14 @@ export default function Home() {
 
       //1) busca resumo simples no /dashboard/estatisticas
       //2) busca lista de professores pra montar o gráfico por turno
-      const [statsRes, profRes] = await Promise.all([
+      const [statsRes, profRes, alertaRes] = await Promise.all([
         fetch(`${API_BASE_URL}/dashboard/estatisticas`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch(`${API_BASE_URL}/professores`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API_BASE_URL}/dashboard/professores-ultrapassados`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -73,6 +79,14 @@ export default function Home() {
       }
 
       const statsData = await statsRes.json();
+
+      let alertaData = [];
+      if (alertaRes.ok) {
+        alertaData = await alertaRes.json();
+      }
+      setProfUltrapassados(alertaData);
+      setMostrarAlertaCH(true); // mostra banner sempre que recarregar
+
 
       setStats({
         professores: statsData.professores || 0,
@@ -160,6 +174,27 @@ export default function Home() {
           <p className="subtitle">
             Aqui você poderá gerenciar professores, matrizes, disciplinas e muito mais.
           </p>
+
+          {mostrarAlertaCH && profUltrapassados.length > 0 && (
+            <div className="alerta-ch">
+              <div className="alerta-ch-conteudo">
+                ⚠ Há <strong>{profUltrapassados.length}</strong>{" "}
+                professor(es) com carga horária ultrapassada{" "}
+                {profUltrapassados.length <= 3 && (
+                  <span>
+                    ({profUltrapassados.map((p) => p.nome).join(", ")})
+                  </span>
+                )}
+              </div>
+              <button
+                className="alerta-ch-fechar"
+                onClick={() => setMostrarAlertaCH(false)}
+              >
+                Fechar
+              </button>
+            </div>
+          )}
+
 
           {mensagem && <p className="mensagem-erro">{mensagem}</p>}
 

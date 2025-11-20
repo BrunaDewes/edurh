@@ -160,3 +160,41 @@
   font-weight: 600;
   margin-top: 10px;
 }
+
+.alerta-ch {
+  margin-top: 16px;
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.alerta-ch-conteudo {
+  flex: 1;                 /* ocupa o “miolo” */
+  text-align: center;      /* texto centralizado */
+  color: #b91c1c;
+  font-size: 0.95rem;
+  line-height: 1.4rem;
+}
+
+/* botão pequenininho, no canto direito */
+.alerta-ch-fechar {
+  margin-left: auto;         /* joga pro canto direito */
+  display: inline-flex;      /* não deixa ocupar linha toda */
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #b91c1c;
+  background: transparent;
+  color: #b91c1c;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: auto !important;    /* ignora qualquer width global */
+  min-width: unset;
+}
