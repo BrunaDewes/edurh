@@ -162,7 +162,7 @@ export default function Disciplinas() {
               </div>
 
               <div className="disciplinas-form-group">
-                <label>Carga horária (h):</label>
+                <label>Carga horária (períodos):</label>
                 <input
                   type="number"
                   className="disciplinas-input"
@@ -194,7 +194,7 @@ export default function Disciplinas() {
         <thead>
           <tr>
             <th>Nome</th>
-            <th>Carga Horária</th>
+            <th>Carga Horária (Períodos/semana)</th>
             <th>Ações</th>
           </tr>
         </thead>
@@ -205,7 +205,7 @@ export default function Disciplinas() {
             <tr key={d.id}>
               <td className="disciplinas-td">{d.nome}</td>
               <td className="disciplinas-td">
-                {d.cargaHoraria != null ? `${d.cargaHoraria} h` : "-"}
+                {d.cargaHoraria != null ? `${d.cargaHoraria} períodos` : "-"}
               </td>
               <td className="disciplinas-td">
                 <button

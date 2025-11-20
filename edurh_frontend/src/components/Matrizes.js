@@ -108,7 +108,7 @@ export default function Matrizes() {
         />
         <input
           type="number"
-          placeholder="Carga Horária"
+          placeholder="Períodos por semana (ex: 25)"
           value={cargaHoraria}
           onChange={(e) => setCargaHoraria(e.target.value)}
           required
@@ -131,7 +131,7 @@ export default function Matrizes() {
           <tr>
             <th>ID</th>
             <th>Tipo</th>
-            <th>Carga Horária</th>
+            <th>Carga Horária (Períodos/semana)</th>
             <th>Turno</th>
             <th>Ações</th>
           </tr>
@@ -148,7 +148,7 @@ export default function Matrizes() {
               <tr key={m.id}>
                 <td>{m.id}</td>
                 <td>{m.tipo}</td>
-                <td>{m.cargaHoraria}h</td>
+                <td>{m.cargaHoraria} períodos</td>
                 <td>{m.turno}</td>
                 <td>
                   <button onClick={() => editarMatriz(m)}>Editar</button>

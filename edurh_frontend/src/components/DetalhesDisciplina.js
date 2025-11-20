@@ -71,9 +71,9 @@ export default function DetalhesDisciplina() {
       <div style={styles.card}>
         <h2 style={styles.titulo}>📚 {disciplina.nome}</h2>
         <p>
-          <strong>Carga horária:</strong>{" "}
+          <strong>Carga horária (Períodos/semana):</strong>{" "}
           {disciplina.cargaHoraria != null
-            ? `${disciplina.cargaHoraria} horas`
+            ? `${disciplina.cargaHoraria} períodos`
             : "-"}
         </p>
 

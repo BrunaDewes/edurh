@@ -125,6 +125,11 @@ export default function DetalhesTurma() {
     (d) => !idsDisciplinasTurma.has(d.id)
   );
 
+  const totalPeriodos = turma.disciplinas?.reduce(
+    (soma, d) => soma + (d.cargaHoraria || 0),
+    0
+  ) || 0;
+
   return (
     <div style={styles.container}>
       <BotaoVoltar destino="/turmas" />
@@ -147,10 +152,15 @@ export default function DetalhesTurma() {
               <>
                 <p>
                   <strong>Carga Horária da Matriz:</strong>{" "}
-                  {turma.matriz.cargaHoraria}h
+                  {turma.matriz.cargaHoraria} períodos
                 </p>
                 <p>
                   <strong>Turno:</strong> {turma.matriz.turno}
+                </p>
+                <p>
+                  <strong>Total de períodos da turma:</strong>{" "}
+                  {totalPeriodos} /{" "}
+                  {turma.matriz?.cargaHoraria} (períodos)
                 </p>
               </>
             )}
@@ -173,7 +183,7 @@ export default function DetalhesTurma() {
                     .map((disc) => (
                       <tr key={disc.id}>
                         <td style={styles.td}>{disc.nome}</td>
-                        <td style={styles.td}>{disc.cargaHoraria}h</td>
+                        <td style={styles.td}>{disc.cargaHoraria} períodos</td>
                         <td style={styles.td}>
                           {Array.isArray(disc.professores) &&
                           disc.professores.filter(
@@ -207,7 +217,7 @@ export default function DetalhesTurma() {
                 {disciplinasDisponiveis.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.nome}{" "}
-                    {d.cargaHoraria != null ? `(${d.cargaHoraria}h)` : ""}
+                    {d.cargaHoraria != null ? `(${d.cargaHoraria} per)` : ""}
                   </option>
                 ))}
               </select>

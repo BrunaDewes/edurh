@@ -107,6 +107,15 @@ export default function Professores() {
     }
   };
 
+  // Soma a carga horária das disciplinas do professor
+  const calcularCargaAtual = (prof) => {
+    if (!prof.disciplinas || !Array.isArray(prof.disciplinas)) return 0;
+
+    return prof.disciplinas
+      .filter((d) => d && typeof d === "object")
+      .reduce((total, d) => total + (d.cargaHoraria || 0), 0);
+  };
+
   return (
     <div className="prof-container">
         <BotaoVoltar destino="/home" />
@@ -137,7 +146,7 @@ export default function Professores() {
         />
         <input
           type="number"
-          placeholder="Carga Horária"
+          placeholder="Carga Horária Máxima (períodos)"
           value={cargaHoraria}
           onChange={(e) => setCargaHoraria(e.target.value)}
           required
@@ -158,7 +167,7 @@ export default function Professores() {
           <tr>
             <th>ID</th>
             <th>Nome</th>
-            <th>Carga Horária</th>
+            <th>Carga Horária (Períodos)</th>
             <th>Turno</th>
             <th>Ações</th>
           </tr>
@@ -170,23 +179,35 @@ export default function Professores() {
             </tr>
           ) : (
             professores
-              .filter((prof) => prof && typeof prof === "object") 
+              .filter((prof) => prof && typeof prof === "object")
               .filter((prof) =>
                 prof.nome.toLowerCase().includes(busca.toLowerCase())
               )
-              .map((prof) => (
-                <tr key={prof.id}>
-                  <td>{prof.id}</td>
-                  <td>{prof.nome}</td>
-                  <td>{prof.cargaHoraria}h</td>
-                  <td>{prof.turno}</td>
-                  <td>
-                    <button onClick={() => editarProfessor(prof)}>Editar</button>
-                    <button onClick={() => deletarProfessor(prof.id)}>Excluir</button>
-                    <button onClick={() => navigate(`/professores/${prof.id}`)}>Detalhes</button>
-                  </td>
-                </tr>
-            ))
+              .map((prof) => {
+                const chAtual = calcularCargaAtual(prof);   // calcula CH atual
+                const excedeu = chAtual > (prof.cargaHoraria || 0); // verifica estouro
+
+                return (
+                  <tr
+                    key={prof.id}
+                    className={excedeu ? "professor-ultrapassado" : ""}
+                  >
+                    <td>{prof.id}</td>
+                    <td>{prof.nome}</td>
+                    <td>
+                      {chAtual} per. / {prof.cargaHoraria} per.
+                    </td>
+                    <td>{prof.turno}</td>
+                    <td>
+                      <button onClick={() => editarProfessor(prof)}>Editar</button>
+                      <button onClick={() => deletarProfessor(prof.id)}>Excluir</button>
+                      <button onClick={() => navigate(`/professores/${prof.id}`)}>
+                        Detalhes
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
           )}
         </tbody>
       </table>

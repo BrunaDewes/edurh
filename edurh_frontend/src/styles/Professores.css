@@ -77,3 +77,12 @@ h2 {
   color: #1d4ed8;
   margin-bottom: 10px;
 }
+
+.professor-ultrapassado {
+  background-color: #fee2e2; /* vermelho bem clarinho */
+}
+
+.professor-ultrapassado td {
+  color: #b91c1c; /* vermelho mais forte no texto */
+  font-weight: 600;
+}

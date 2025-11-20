@@ -114,7 +114,19 @@ export default function DetalhesProfessor() {
     }
   };
 
+  // Soma a carga horária das disciplinas do professor (em períodos)
+  const calcularCargaAtual = (prof) => {
+    if (!prof || !prof.disciplinas || !Array.isArray(prof.disciplinas)) return 0;
+
+    return prof.disciplinas
+      .filter((d) => d && typeof d === "object")
+      .reduce((total, d) => total + (d.cargaHoraria || 0), 0);
+  };
+
   if (!professor) return <p style={styles.loading}>Carregando...</p>;
+
+  const chAtual = calcularCargaAtual(professor);
+  const excedeu = chAtual > (professor.cargaHoraria || 0);
 
   // garante que só objetos completos entram aqui
   const disciplinasProfessor = (professor.disciplinas || []).filter(
@@ -139,8 +151,31 @@ export default function DetalhesProfessor() {
 
       <div style={styles.infoBox}>
         <p><strong>Turno:</strong> {professor.turno}</p>
-        <p><strong>CH Máxima:</strong> {professor.cargaHoraria} horas</p>
-        <p><strong>CH Atual:</strong> {calcularCHAtual()} horas</p>
+      </div>
+
+      <div
+        style={{
+          marginTop: "15px",
+          padding: "12px 16px",
+          borderRadius: "8px",
+          backgroundColor: excedeu ? "#fee2e2" : "#e0f2fe",
+          color: excedeu ? "#b91c1c" : "#1d4ed8",
+          fontWeight: 500,
+        }}
+      >
+        <p>
+          Carga horária atual (somando disciplinas):{" "}
+          <strong>{chAtual} períodos</strong>
+        </p>
+        <p>
+          Limite cadastrado (RT):{" "}
+          <strong>{professor.cargaHoraria} períodos</strong>
+        </p>
+        {excedeu && (
+          <p style={{ marginTop: "6px" }}>
+            ⚠ Este professor <strong>ultrapassou a carga horária</strong>.
+          </p>
+        )}
       </div>
 
       <div style={styles.matrizesBox}>
@@ -162,7 +197,7 @@ export default function DetalhesProfessor() {
               .map((m) => (
                 <tr key={m.id}>
                   <td style={styles.td}>{m.tipo}</td>
-                  <td style={styles.td}>{m.cargaHoraria}h</td>
+                  <td style={styles.td}>{m.cargaHoraria} períodos</td>
                   <td style={styles.td}>
                     <button
                       style={styles.excluirBtn}
@@ -201,7 +236,7 @@ export default function DetalhesProfessor() {
             {disciplinasProfessor.map((d) => (
               <li key={d.id}>
                 {d.nome}{" "}
-                {d.cargaHoraria != null ? `(${d.cargaHoraria}h)` : ""}
+                {d.cargaHoraria != null ? `(${d.cargaHoraria} per.)` : ""}
               </li>
             ))}
           </ul>
@@ -222,7 +257,7 @@ export default function DetalhesProfessor() {
             {disciplinasDisponiveis.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.nome}{" "}
-                {d.cargaHoraria != null ? `(${d.cargaHoraria}h)` : ""}
+                {d.cargaHoraria != null ? `(${d.cargaHoraria} per.)` : ""}
               </option>
             ))}
           </select>
