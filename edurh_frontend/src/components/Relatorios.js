@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { API_BASE_URL } from "../config";
-import BotaoVoltar from "./BotaoVoltar"; 
+import BotaoVoltar from "./BotaoVoltar";
 
 export default function Relatorios() {
   const [selectedReport, setSelectedReport] = useState(null);
@@ -34,7 +34,8 @@ export default function Relatorios() {
       let url = "";
       if (tipo === "ch") url = "/professores/relatorio/ch";
       if (tipo === "matrizProf") url = "/professores/relatorio/matriz";
-      if (tipo === "matrizDet") url = "/professores/relatorio/matriz-detalhado";
+      if (tipo === "matrizDet")
+        url = "/professores/relatorio/matriz-detalhado";
       if (tipo === "dist") url = "/professores/relatorio/distribuicao-ch-turno";
 
       const res = await fetch(`${API_BASE_URL}${url}`, {
@@ -60,9 +61,125 @@ export default function Relatorios() {
     }
   };
 
+  // -------- EXPORTAÇÃO CSV (Excel abre) --------
+  const exportarCSV = () => {
+    let linhas = [];
+    let nomeArquivo = "relatorio";
+
+    if (selectedReport === "ch" && relCh.length > 0) {
+      nomeArquivo = "relatorio_carga_horaria";
+      linhas.push([
+        "Professor",
+        "CH (horas RT)",
+        "Total períodos",
+        "Preparação (períodos)",
+        "Períodos para aulas",
+      ]);
+      relCh.forEach((item) => {
+        linhas.push([
+          item.professor,
+          item.cargaHorariaHoras,
+          item.totalPeriodos,
+          item.preparacaoPeriodos,
+          item.periodosParaAulas,
+        ]);
+      });
+    } else if (selectedReport === "matrizProf" && relMatrizProf.length > 0) {
+      nomeArquivo = "relatorio_professores_por_matriz";
+      linhas.push(["Matriz", "Professores"]);
+      relMatrizProf.forEach((item) => {
+        linhas.push([
+          item.matriz,
+          Array.isArray(item.professores)
+            ? item.professores.join(", ")
+            : "",
+        ]);
+      });
+    } else if (selectedReport === "matrizDet" && relMatrizDet.length > 0) {
+      nomeArquivo = "relatorio_matriz_turma_disciplina";
+      linhas.push([
+        "Matriz",
+        "Turno",
+        "Turma",
+        "Disciplina",
+        "Professores",
+        "CH (períodos)",
+      ]);
+      relMatrizDet.forEach((item) => {
+        linhas.push([
+          item.matrizTipo,
+          item.turno,
+          item.turma,
+          item.disciplina,
+          Array.isArray(item.professores)
+            ? item.professores.join(", ")
+            : "",
+          item.cargaHoraria,
+        ]);
+      });
+    } else if (selectedReport === "dist" && relDistribuicao.length > 0) {
+      nomeArquivo = "relatorio_distribuicao_ch_turno";
+      linhas.push([
+        "Professor",
+        "Período/Turno",
+        "Total CH (horas)",
+        "Preparação (períodos)",
+        "Carga para aulas (períodos)",
+        "Períodos de aula",
+        "Disciplinas/Turmas",
+      ]);
+      relDistribuicao.forEach((item) => {
+        linhas.push([
+          item.professor,
+          item.periodo,
+          item.totalCH,
+          item.preparacaoPeriodos,
+          item.cargaParaAulas,
+          item.periodos,
+          Array.isArray(item.disciplinasTurmas)
+            ? item.disciplinasTurmas.join(", ")
+            : "",
+        ]);
+      });
+    }
+
+    if (linhas.length === 0) {
+      alert("Não há dados para exportar neste relatório.");
+      return;
+    }
+
+    const csvContent = linhas
+      .map((linha) =>
+        linha
+          .map((campo) => {
+            const texto = campo != null ? String(campo) : "";
+            // coloca entre aspas e troca aspas internas
+            return `"${texto.replace(/"/g, '""')}"`;
+          })
+          .join(";") // separador ; porque é comum no pt-BR
+      )
+      .join("\n");
+
+    const blob = new Blob([csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${nomeArquivo}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const renderConteudo = () => {
     if (!selectedReport) {
-      return <p style={styles.info}>Selecione um relatório ao lado para visualizar.</p>;
+      return (
+        <p style={styles.info}>
+          Selecione um relatório ao lado para visualizar.
+        </p>
+      );
     }
 
     if (loading) {
@@ -76,7 +193,14 @@ export default function Relatorios() {
     if (selectedReport === "ch") {
       return (
         <section style={styles.section}>
-          <h3 style={styles.subtitulo}>Carga horária por professor</h3>
+          <div style={styles.headerSection}>
+            <h3 style={styles.subtitulo}>Carga horária por professor</h3>
+            {relCh.length > 0 && (
+              <button style={styles.btnExport} onClick={exportarCSV}>
+                ⬇ Exportar para Excel (CSV)
+              </button>
+            )}
+          </div>
           {relCh.length === 0 ? (
             <p>Nenhum dado encontrado.</p>
           ) : (
@@ -84,7 +208,7 @@ export default function Relatorios() {
               <thead>
                 <tr>
                   <th style={styles.th}>Professor</th>
-                  <th style={styles.th}>CH (horas)</th>
+                  <th style={styles.th}>CH (horas RT)</th>
                   <th style={styles.th}>Total períodos</th>
                   <th style={styles.th}>Preparação (períodos)</th>
                   <th style={styles.th}>Períodos para aulas</th>
@@ -110,7 +234,14 @@ export default function Relatorios() {
     if (selectedReport === "matrizProf") {
       return (
         <section style={styles.section}>
-          <h3 style={styles.subtitulo}>Professores por matriz</h3>
+          <div style={styles.headerSection}>
+            <h3 style={styles.subtitulo}>Professores por matriz</h3>
+            {relMatrizProf.length > 0 && (
+              <button style={styles.btnExport} onClick={exportarCSV}>
+                ⬇ Exportar para Excel (CSV)
+              </button>
+            )}
+          </div>
           {relMatrizProf.length === 0 ? (
             <p>Nenhum dado encontrado.</p>
           ) : (
@@ -142,9 +273,16 @@ export default function Relatorios() {
     if (selectedReport === "matrizDet") {
       return (
         <section style={styles.section}>
-          <h3 style={styles.subtitulo}>
-            Detalhamento: Matriz → Turma → Disciplina → Professores
-          </h3>
+          <div style={styles.headerSection}>
+            <h3 style={styles.subtitulo}>
+              Detalhamento: Matriz → Turma → Disciplina → Professores
+            </h3>
+            {relMatrizDet.length > 0 && (
+              <button style={styles.btnExport} onClick={exportarCSV}>
+                ⬇ Exportar para Excel (CSV)
+              </button>
+            )}
+          </div>
           {relMatrizDet.length === 0 ? (
             <p>Nenhum dado encontrado.</p>
           ) : (
@@ -156,7 +294,7 @@ export default function Relatorios() {
                   <th style={styles.th}>Turma</th>
                   <th style={styles.th}>Disciplina</th>
                   <th style={styles.th}>Professores</th>
-                  <th style={styles.th}>CH</th>
+                  <th style={styles.th}>CH (períodos)</th>
                 </tr>
               </thead>
               <tbody>
@@ -184,9 +322,18 @@ export default function Relatorios() {
     if (selectedReport === "dist") {
       return (
         <section style={styles.section}>
-          <h3 style={styles.subtitulo}>
-            Distribuição de CH por período (turno) por professor
-          </h3>
+      
+          <div style={styles.headerSection}>
+            <h3 style={styles.subtitulo}>
+              Distribuição de CH por período (turno) por professor
+            </h3>
+            {relDistribuicao.length > 0 && (
+              <button style={styles.btnExport} onClick={exportarCSV}>
+                ⬇ Exportar para Excel (CSV)
+              </button>
+            )}
+          </div>
+
           {relDistribuicao.length === 0 ? (
             <p>Nenhum dado encontrado.</p>
           ) : (
@@ -194,11 +341,11 @@ export default function Relatorios() {
               <thead>
                 <tr>
                   <th style={styles.th}>Professor</th>
-                  <th style={styles.th}>Período</th>
-                  <th style={styles.th}>Total CH</th>
+                  <th style={styles.th}>Período / Turno</th>
+                  <th style={styles.th}>Total CH (horas)</th>
                   <th style={styles.th}>Preparação (períodos)</th>
-                  <th style={styles.th}>Carga para aulas</th>
-                  <th style={styles.th}>Períodos</th>
+                  <th style={styles.th}>Carga para aulas (períodos)</th>
+                  <th style={styles.th}>Períodos de aula</th>
                   <th style={styles.th}>Disciplinas/Turmas</th>
                 </tr>
               </thead>
@@ -231,9 +378,7 @@ export default function Relatorios() {
   return (
     <div style={styles.page}>
       <div style={styles.sidebar}>
-        {/* Botão dentro da caixinha */}
         <BotaoVoltar destino="/home" />
-
         <h2 style={styles.titulo}>📊 Relatórios</h2>
         <button
           style={{
@@ -290,7 +435,7 @@ const styles = {
     background: "#f3f4f6",
     padding: "15px",
     borderRadius: "10px",
-    boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.05)",
     height: "fit-content",
   },
   titulo: {
@@ -303,6 +448,7 @@ const styles = {
     padding: "8px 10px",
     marginBottom: "8px",
     background: "#1d4ed8",
+    color: "#fff",
     border: "none",
     borderRadius: "6px",
     textAlign: "left",
@@ -319,14 +465,38 @@ const styles = {
     background: "#f9fafb",
     padding: "15px",
     borderRadius: "10px",
-    boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.05)",
     minHeight: "200px",
   },
   section: {
     marginBottom: "20px",
   },
-  subtitulo: {
+  headerSection: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: "10px",
+    gap: "10px",
+  },
+  btnExport: {
+    padding: "6px 10px",
+    borderRadius: "6px",
+    border: "none",
+    background: "#059669",
+    color: "#fff",
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: 600,
+    // 👇 forçar a não ocupar a largura toda
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "auto",
+    maxWidth: "260px",
+    whiteSpace: "nowrap",
+  },
+  subtitulo: {
+    marginBottom: 0,
     color: "#111827",
   },
   erro: {
