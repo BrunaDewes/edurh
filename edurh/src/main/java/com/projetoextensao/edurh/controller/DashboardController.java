@@ -12,6 +12,7 @@ import java.util.Map;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import com.projetoextensao.edurh.model.Professor;
 import com.projetoextensao.edurh.model.Disciplina;
@@ -49,27 +50,49 @@ public class DashboardController {
         List<Map<String, Object>> resultado = new ArrayList<>();
 
         for (Professor p : professores) {
+            // Soma dos períodos (disciplinas do professor)
             int totalPeriodos = 0;
             if (p.getDisciplinas() != null) {
-                for (Disciplina d : p.getDisciplinas()) {
-                    if (d != null) {
-                        totalPeriodos += d.getCargaHoraria(); // períodos
-                    }
-                }
+                totalPeriodos = p.getDisciplinas().stream()
+                        .filter(Objects::nonNull)
+                        .mapToInt(Disciplina::getCargaHoraria)
+                        .sum();
             }
 
-            // por enquanto comparamos direto períodos x RT em horas (lógica simples)
-            if (totalPeriodos > p.getCargaHoraria()) {
+            // Novo cálculo correto usando tabela RT -> períodos
+            int maxPeriodos = calcularMaxPeriodosRT(p.getCargaHoraria());
+
+            // Excedeu?
+            if (totalPeriodos > maxPeriodos) {
                 Map<String, Object> dto = new HashMap<>();
                 dto.put("id", p.getId());
                 dto.put("nome", p.getNome());
-                dto.put("cargaHorariaMaxima", p.getCargaHoraria());
-                dto.put("cargaHorariaAtual", totalPeriodos);
+                dto.put("rtHoras", p.getCargaHoraria());
+                dto.put("maxPeriodos", maxPeriodos);
+                dto.put("totalPeriodos", totalPeriodos);
                 resultado.add(dto);
             }
         }
 
         return resultado;
     }
+
+    // Converte RT (horas) em períodos de aula (50 min)
+    private int calcularMaxPeriodosRT(int rt) {
+        if (rt <= 0) return 0;
+
+        switch (rt) {
+            case 20:
+                return 16;
+            case 30:
+                return 24;
+            case 40:
+                return 32;
+            default:
+                // aproximação: 80% do RT em períodos
+                return Math.round(rt * 0.8f);
+        }
+    }
+
 
 }

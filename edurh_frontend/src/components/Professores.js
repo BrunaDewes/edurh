@@ -116,6 +116,23 @@ export default function Professores() {
       .reduce((total, d) => total + (d.cargaHoraria || 0), 0);
   };
 
+  // Calcula o máximo de períodos permitidos com base na RT
+  const calcularMaxPeriodosRT = (rt) => {
+    if (!rt || rt <= 0) return 0;
+
+    switch (rt) {
+      case 20:
+        return 16;
+      case 30:
+        return 24;
+      case 40:
+        return 32;
+      default:
+        return Math.round(rt * 0.8);
+    }
+  };
+
+
   return (
     <div className="prof-container">
         <BotaoVoltar destino="/home" />
@@ -184,8 +201,9 @@ export default function Professores() {
                 prof.nome.toLowerCase().includes(busca.toLowerCase())
               )
               .map((prof) => {
-                const chAtual = calcularCargaAtual(prof);   // calcula CH atual
-                const excedeu = chAtual > (prof.cargaHoraria || 0); // verifica estouro
+                const chAtual = calcularCargaAtual(prof);   // calcula CH atual (periodos)
+                const maxPeriodos = calcularMaxPeriodosRT(prof.cargaHoraria || 0);
+                const excedeu = chAtual > maxPeriodos;
 
                 return (
                   <tr
@@ -195,7 +213,12 @@ export default function Professores() {
                     <td>{prof.id}</td>
                     <td>{prof.nome}</td>
                     <td>
-                      {chAtual} per. / {prof.cargaHoraria} per.
+                      {chAtual} períodos / {maxPeriodos} períodos{" "}
+                      {prof.cargaHoraria != null && (
+                        <span style={{ fontSize: "0.85rem" }}>
+                          (RT {prof.cargaHoraria}h)
+                        </span>
+                      )}
                     </td>
                     <td>{prof.turno}</td>
                     <td>

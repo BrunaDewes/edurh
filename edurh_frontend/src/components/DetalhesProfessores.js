@@ -123,10 +123,28 @@ export default function DetalhesProfessor() {
       .reduce((total, d) => total + (d.cargaHoraria || 0), 0);
   };
 
+  // Converte RT (horas) em períodos semanais de aula 
+  const calcularMaxPeriodosRT = (rt) => {
+    if (!rt || rt <= 0) return 0;
+
+    switch (rt) {
+      case 20:
+        return 16;
+      case 30:
+        return 24;
+      case 40:
+        return 32;
+      default:
+        // aproximação genérica: 80% do RT vira período de aula
+        return Math.round(rt * 0.8);
+    }
+  };
+
   if (!professor) return <p style={styles.loading}>Carregando...</p>;
 
   const chAtual = calcularCargaAtual(professor);
-  const excedeu = chAtual > (professor.cargaHoraria || 0);
+  const maxPeriodos = calcularMaxPeriodosRT(professor.cargaHoraria || 0);
+  const excedeu = chAtual > maxPeriodos;
 
   // garante que só objetos completos entram aqui
   const disciplinasProfessor = (professor.disciplinas || []).filter(
@@ -200,8 +218,13 @@ export default function DetalhesProfessor() {
           <strong>{chAtual} períodos</strong>
         </p>
         <p>
-          Limite cadastrado (RT):{" "}
-          <strong>{professor.cargaHoraria} períodos</strong>
+          Limite calculado a partir do RT:{" "}
+          <strong>{maxPeriodos} períodos</strong>{" "}
+          {professor.cargaHoraria != null && (
+            <span style={{ fontSize: "0.9rem" }}>
+              (RT {professor.cargaHoraria}h)
+            </span>
+          )}
         </p>
         {excedeu && (
           <p style={{ marginTop: "6px" }}>
