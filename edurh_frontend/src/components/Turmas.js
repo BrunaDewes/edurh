@@ -87,10 +87,16 @@ export default function Turmas() {
     e.preventDefault();
     setErro("");
 
+    // ⚠ validação simples no front: matriz é obrigatória
+    if (!matrizId) {
+      setErro("Selecione uma matriz para a turma.");
+      return; // não chama o backend
+    }
+
     try {
       const body = {
         nome,
-        matriz: matrizId ? { id: parseInt(matrizId, 10) } : null,
+        matriz: { id: parseInt(matrizId, 10) }, // sempre vem com matriz
       };
 
       const url = editando
@@ -105,14 +111,28 @@ export default function Turmas() {
         body: JSON.stringify(body),
       });
 
+      const txt = await res.text(); // lê msg do backend (400, etc.)
+
+      
+      // Se der erro, mostra mensagem e não fecha modal
+      if (res.status === 400) {
+        setErro(txt || "Dados inválidos ao salvar turma.");
+        return;
+      }
+      if (res.status === 403) {
+        setErro("Acesso negado. Faça login novamente.");
+        return;
+      }
       if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(txt || `HTTP ${res.status}`);
+        setErro("Erro ao salvar turma. Tente novamente.");
+        return;
       }
 
+      // SUCESSO
       await carregarTurmas();
       fecharForm();
-    } catch (e) {
+    } 
+    catch (e) {
       console.error(e);
       setErro(`Erro ao salvar turma: ${e.message}`);
     }

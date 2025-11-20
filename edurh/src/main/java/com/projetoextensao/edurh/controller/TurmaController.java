@@ -1,17 +1,28 @@
 package com.projetoextensao.edurh.controller;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.projetoextensao.edurh.model.Disciplina;
 import com.projetoextensao.edurh.model.Matriz;
 import com.projetoextensao.edurh.model.Turma;
+import com.projetoextensao.edurh.repository.DisciplinaRepository;
 import com.projetoextensao.edurh.repository.MatrizRepository;
 import com.projetoextensao.edurh.repository.TurmaRepository;
-import com.projetoextensao.edurh.repository.DisciplinaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/turmas")
@@ -44,12 +55,21 @@ public class TurmaController {
     // CRIAR TURMA
     @PostMapping
     public ResponseEntity<Turma> criarTurma(@RequestBody Turma turma) {
+
+         // Obrigatoriedade de matriz ao criar turma
+        if (turma.getMatriz() == null || turma.getMatriz().getId() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "A turma precisa estar vinculada a uma matriz."
+            );
+        }
+
         // se vier matriz com id, garante que é uma entidade gerenciada
         if (turma.getMatriz() != null && turma.getMatriz().getId() != null) {
             Optional<Matriz> matrizOpt = matrizRepository.findById(turma.getMatriz().getId());
             matrizOpt.ifPresent(turma::setMatriz);
         } else {
-            turma.setMatriz(null);
+            turma.setMatriz(null); //mas nunca vai entrar aqui por causa da validação acima
         }
 
         Turma salva = turmaRepository.save(turma);
@@ -62,12 +82,23 @@ public class TurmaController {
         return turmaRepository.findById(id)
                 .map(turma -> {
                     turma.setNome(dados.getNome());
-                    if (dados.getMatriz() != null && dados.getMatriz().getId() != null) {
-                        matrizRepository.findById(dados.getMatriz().getId())
-                                .ifPresent(turma::setMatriz);
-                    } else {
-                        turma.setMatriz(null);
+
+                    //Obrigatoriedade de matriz também no UPDATE
+                    if (dados.getMatriz() == null || dados.getMatriz().getId() == null) {
+                        throw new ResponseStatusException(
+                                HttpStatus.BAD_REQUEST,
+                                "A turma precisa estar vinculada a uma matriz."
+                        );
                     }
+
+                    // ✔ Buscar matriz válida
+                    Matriz matriz = matrizRepository.findById(dados.getMatriz().getId())
+                            .orElseThrow(() -> new ResponseStatusException(
+                                    HttpStatus.BAD_REQUEST,
+                                    "Matriz informada não encontrada."
+                            ));
+
+                    turma.setMatriz(matriz);
                     return ResponseEntity.ok(turmaRepository.save(turma));
                 })
                 .orElse(ResponseEntity.notFound().build());
