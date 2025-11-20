@@ -42,8 +42,8 @@ export default function ModalAdicionarMatriz({ professorId, onClose, onSuccess }
         }
       );
       if (res.ok) {
-        setMensagem("Matriz adicionada com sucesso!");
-        onSuccess(); // recarrega dados no pai
+        onSuccess(); // recarrega dados no painel
+        onClose(); // fecha o modal automaticamente
       } else {
         setMensagem("Erro ao adicionar matriz.");
       }
@@ -69,7 +69,7 @@ export default function ModalAdicionarMatriz({ professorId, onClose, onSuccess }
               .filter((m) => m && typeof m === "object")
               .map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.tipo} — {m.turno} ({m.cargaHoraria}h)
+                  {m.tipo} — {m.turno} ({m.cargaHoraria} per.)
                 </option>
               ))}
             </select>
