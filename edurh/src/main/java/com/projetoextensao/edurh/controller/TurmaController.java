@@ -73,6 +73,64 @@ public class TurmaController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // ---------------- Vincular DISCIPLINA à TURMA (com validação da matriz) ----------------
+    @PostMapping("/{turmaId}/disciplinas/{disciplinaId}")
+    public ResponseEntity<?> adicionarDisciplinaNaTurma(
+            @PathVariable Long turmaId,
+            @PathVariable Long disciplinaId) {
+
+        Optional<Turma> turmaOpt = turmaRepository.findById(turmaId);
+        Optional<Disciplina> disciplinaOpt = disciplinaRepository.findById(disciplinaId);
+
+        if (turmaOpt.isEmpty() || disciplinaOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Turma turma = turmaOpt.get();
+        Disciplina disciplina = disciplinaOpt.get();
+
+        // Se a turma não tiver matriz, não tem como validar
+        Matriz matriz = turma.getMatriz();
+        if (matriz == null) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("Esta turma não possui uma matriz associada. Atribua uma matriz antes de adicionar disciplinas.");
+        }
+
+        // Evitar duplicar disciplina na turma
+        if (turma.getDisciplinas() != null && turma.getDisciplinas().contains(disciplina)) {
+            return ResponseEntity.ok("Disciplina já está vinculada a esta turma.");
+        }
+
+        // Soma de períodos já existentes na turma
+        int somaPeriodosExistentes = turma.getDisciplinas()
+                .stream()
+                .mapToInt(Disciplina::getCargaHoraria)
+                .sum();
+
+        // Nova soma considerando a disciplina que está sendo adicionada
+        int novaSoma = somaPeriodosExistentes + disciplina.getCargaHoraria();
+
+        // Validação: não pode ultrapassar a CH da matriz
+        if (novaSoma > matriz.getCargaHoraria()) {
+            String msg = String.format(
+                    "A soma dos períodos das disciplinas (%d) excede a carga horária da matriz (%d).",
+                    novaSoma, matriz.getCargaHoraria()
+            );
+            return ResponseEntity.badRequest().body(msg);
+        }
+
+        // Passou na validação → vincula nos dois lados do relacionamento
+        turma.getDisciplinas().add(disciplina);
+        disciplina.getTurmas().add(turma);
+
+        turmaRepository.save(turma);
+        disciplinaRepository.save(disciplina);
+
+        return ResponseEntity.ok("Disciplina vinculada à turma com sucesso!");
+    }
+
+
     // ---------------- Remover DISCIPLINA da TURMA ----------------
     @DeleteMapping("/{turmaId}/disciplinas/{disciplinaId}")
     public ResponseEntity<?> removerDisciplinaDaTurma(

@@ -69,7 +69,7 @@ export default function DetalhesTurma() {
 
     try {
       const res = await fetch(
-        `${API_BASE_URL}/disciplinas/${disciplinaSelecionada}/turmas/${id}`,
+        `${API_BASE_URL}/turmas/${id}/disciplinas/${disciplinaSelecionada}`,
         {
           method: "POST",
           headers: {
