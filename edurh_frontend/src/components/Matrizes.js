@@ -151,8 +151,8 @@ export default function Matrizes() {
                 <td>{m.cargaHoraria} períodos</td>
                 <td>{m.turno}</td>
                 <td>
-                  <button onClick={() => editarMatriz(m)}>Editar</button>
-                  <button onClick={() => deletarMatriz(m.id)}>Excluir</button>
+                  <button className="btn-editar" onClick={() => editarMatriz(m)}>Editar</button>
+                  <button className="btn-deletar" onClick={() => deletarMatriz(m.id)}>Excluir</button>
                 </td>
               </tr>
             ))

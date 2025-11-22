@@ -222,11 +222,9 @@ export default function Professores() {
                     </td>
                     <td>{prof.turno}</td>
                     <td>
-                      <button onClick={() => editarProfessor(prof)}>Editar</button>
-                      <button onClick={() => deletarProfessor(prof.id)}>Excluir</button>
-                      <button onClick={() => navigate(`/professores/${prof.id}`)}>
-                        Detalhes
-                      </button>
+                      <button className="btn-editar" onClick={() => editarProfessor(prof)}>Editar</button>
+                      <button className="btn-excluir" onClick={() => deletarProfessor(prof.id)}>Excluir</button>
+                      <button className="btn-detalhes" onClick={() => navigate(`/professores/${prof.id}`)}>Detalhes</button>
                     </td>
                   </tr>
                 );

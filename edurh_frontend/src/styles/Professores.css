@@ -57,20 +57,29 @@ h2 {
 }
 
 .prof-table button {
-  margin: 0 5px;
+  margin: 0 8px;
   padding: 5px 10px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
 }
 
-.prof-table button:first-child {
+/* EDITAR – amarelinho */
+.prof-table .btn-editar {
   background-color: #facc15;
+  color: #000;
 }
 
-.prof-table button:last-child {
+/* EXCLUIR – vermelho */
+.prof-table .btn-excluir {
   background-color: #ef4444;
-  color: white;
+  color: #fff;
+}
+
+/* DETALHES – azul #0ea5e9 */
+.prof-table .btn-detalhes {
+  background-color: #0ea5e9;
+  color: #fff;
 }
 
 .mensagem {

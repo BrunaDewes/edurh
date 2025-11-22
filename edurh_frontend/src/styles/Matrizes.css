@@ -75,6 +75,22 @@
   cursor: pointer;
 }
 
-.matrizes-table button:hover {
-  background-color: #1d4ed8;
+/* EDITAR – amarelo */
+.btn-editar {
+  background-color: #facc15 !important;
+  color: #000 !important;
+}
+
+/* EXCLUIR – vermelho */
+.btn-deletar {
+  background-color: #ef4444 !important;
+  color: #fff !important;
+}
+
+.btn-editar:hover {
+  background-color: #eab308 !important;
+}
+
+.btn-deletar:hover {
+  background-color: #dc2626 !important;
 }
