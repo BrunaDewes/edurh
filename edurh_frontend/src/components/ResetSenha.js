@@ -21,6 +21,11 @@ const ResetSenha = () => {
     e.preventDefault();
     setMessage('');
 
+    if (!token) {
+      setMessage("Token inválido. Tente gerar um novo link de redefinição.");
+      return;
+    }
+
     if (novaSenha !== confirmarSenha) {
       setMessage("As senhas não coincidem.");
       return;
