@@ -71,9 +71,9 @@ export default function Relatorios() {
       linhas.push([
         "Professor",
         "CH (horas RT)",
-        "Total períodos",
-        "Preparação (períodos)",
-        "Períodos para aulas",
+        "Total de períodos usados",
+        "Preparação pra aula (períodos)",
+        "Total de CH em períodos",
       ]);
       relCh.forEach((item) => {
         linhas.push([
@@ -122,20 +122,18 @@ export default function Relatorios() {
       linhas.push([
         "Professor",
         "Período/Turno",
-        "Total CH (horas)",
-        "Preparação (períodos)",
-        "Carga para aulas (períodos)",
-        "Períodos de aula",
+        "Total de períodos usados",
+        "Limite pelo RT (períodos)",
+        "Períodos livres (períodos)",
         "Disciplinas/Turmas",
       ]);
       relDistribuicao.forEach((item) => {
         linhas.push([
           item.professor,
           item.periodo,
-          item.totalCH,
-          item.preparacaoPeriodos,
-          item.cargaParaAulas,
-          item.periodos,
+          item.totalPeriodos,
+          item.maxPeriodos,
+          item.periodosLivres,
           Array.isArray(item.disciplinasTurmas)
             ? item.disciplinasTurmas.join(", ")
             : "",
@@ -209,9 +207,9 @@ export default function Relatorios() {
                 <tr>
                   <th style={styles.th}>Professor</th>
                   <th style={styles.th}>CH (horas RT)</th>
-                  <th style={styles.th}>Total períodos</th>
-                  <th style={styles.th}>Preparação (períodos)</th>
-                  <th style={styles.th}>Períodos para aulas</th>
+                  <th style={styles.th}>Total de períodos usados</th>
+                  <th style={styles.th}>Preparação de aulas (períodos)</th>
+                  <th style={styles.th}>Total de CH em períodos</th>
                 </tr>
               </thead>
               <tbody>
@@ -342,10 +340,9 @@ export default function Relatorios() {
                 <tr>
                   <th style={styles.th}>Professor</th>
                   <th style={styles.th}>Período / Turno</th>
-                  <th style={styles.th}>Total CH (horas)</th>
-                  <th style={styles.th}>Preparação (períodos)</th>
-                  <th style={styles.th}>Carga para aulas (períodos)</th>
-                  <th style={styles.th}>Períodos de aula</th>
+                  <th style={styles.th}>Total de períodos usados</th>
+                  <th style={styles.th}>Limite pelo RT (períodos)</th>
+                  <th style={styles.th}>Períodos livres (períodos)</th>
                   <th style={styles.th}>Disciplinas/Turmas</th>
                 </tr>
               </thead>
@@ -354,10 +351,9 @@ export default function Relatorios() {
                   <tr key={idx}>
                     <td style={styles.td}>{item.professor}</td>
                     <td style={styles.td}>{item.periodo}</td>
-                    <td style={styles.td}>{item.totalCH}</td>
-                    <td style={styles.td}>{item.preparacaoPeriodos}</td>
-                    <td style={styles.td}>{item.cargaParaAulas}</td>
-                    <td style={styles.td}>{item.periodos}</td>
+                    <td style={styles.td}>{item.totalPeriodos}</td>
+                    <td style={styles.td}>{item.maxPeriodos}</td>
+                    <td style={styles.td}>{item.periodosLivres}</td>
                     <td style={styles.td}>
                       {Array.isArray(item.disciplinasTurmas)
                         ? item.disciplinasTurmas.join(", ")
