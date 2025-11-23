@@ -35,6 +35,10 @@ public class Professor {
     @ManyToMany(mappedBy = "professores")
     @JsonIgnoreProperties("professores")
     private Set<Disciplina> disciplinas = new HashSet<>();
+
+    @ManyToOne
+    @JoinColumn(name = "dono_id")
+    private Usuario dono;
     
     // getters e setters
     public Long getId() { return id; }
@@ -54,4 +58,7 @@ public class Professor {
 
     public Set<Disciplina> getDisciplinas() { return disciplinas; }
     public void setDisciplinas(Set<Disciplina> disciplinas) { this.disciplinas = disciplinas; }
+
+    public Usuario getDono() { return dono; }
+    public void setDono(Usuario dono) { this.dono = dono; }
 }

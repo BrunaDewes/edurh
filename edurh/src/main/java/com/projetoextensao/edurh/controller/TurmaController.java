@@ -6,6 +6,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,9 +22,11 @@ import org.springframework.web.server.ResponseStatusException;
 import com.projetoextensao.edurh.model.Disciplina;
 import com.projetoextensao.edurh.model.Matriz;
 import com.projetoextensao.edurh.model.Turma;
+import com.projetoextensao.edurh.model.Usuario;
 import com.projetoextensao.edurh.repository.DisciplinaRepository;
 import com.projetoextensao.edurh.repository.MatrizRepository;
 import com.projetoextensao.edurh.repository.TurmaRepository;
+import com.projetoextensao.edurh.repository.UsuarioRepository;
 
 @RestController
 @RequestMapping("/turmas")
@@ -38,25 +42,34 @@ public class TurmaController {
     @Autowired
     private DisciplinaRepository disciplinaRepository;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
     // LISTAR TODAS
     @GetMapping
     public List<Turma> listarTurmas() {
-        return turmaRepository.findAll();
+        Usuario dono = getUsuarioLogado();
+        return turmaRepository.findByDono(dono);
     }
 
     // BUSCAR POR ID (detalhes)
     @GetMapping("/{id}")
     public ResponseEntity<Turma> buscarPorId(@PathVariable Long id) {
+        Usuario dono = getUsuarioLogado();
+
         return turmaRepository.findById(id)
+                .filter(t -> t.getDono() != null && t.getDono().getId().equals(dono.getId()))
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(403).build());
     }
 
     // CRIAR TURMA
     @PostMapping
     public ResponseEntity<Turma> criarTurma(@RequestBody Turma turma) {
 
-         // Obrigatoriedade de matriz ao criar turma
+         Usuario dono = getUsuarioLogado();
+
+        // Obrigatoriedade de matriz ao criar turma
         if (turma.getMatriz() == null || turma.getMatriz().getId() == null) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -64,13 +77,22 @@ public class TurmaController {
             );
         }
 
-        // se vier matriz com id, garante que é uma entidade gerenciada
-        if (turma.getMatriz() != null && turma.getMatriz().getId() != null) {
-            Optional<Matriz> matrizOpt = matrizRepository.findById(turma.getMatriz().getId());
-            matrizOpt.ifPresent(turma::setMatriz);
-        } else {
-            turma.setMatriz(null); //mas nunca vai entrar aqui por causa da validação acima
+        // Buscar matriz e validar dono
+        Matriz matriz = matrizRepository.findById(turma.getMatriz().getId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Matriz informada não encontrada."
+                ));
+
+        if (matriz.getDono() == null || !matriz.getDono().getId().equals(dono.getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Você não pode vincular turmas a uma matriz de outro usuário."
+            );
         }
+
+        turma.setMatriz(matriz);
+        turma.setDono(dono);
 
         Turma salva = turmaRepository.save(turma);
         return ResponseEntity.ok(salva);
@@ -79,7 +101,10 @@ public class TurmaController {
     // ATUALIZAR TURMA
     @PutMapping("/{id}")
     public ResponseEntity<Turma> atualizarTurma(@PathVariable Long id, @RequestBody Turma dados) {
+        Usuario dono = getUsuarioLogado();
+
         return turmaRepository.findById(id)
+                .filter(t -> t.getDono() != null && t.getDono().getId().equals(dono.getId()))
                 .map(turma -> {
                     turma.setNome(dados.getNome());
 
@@ -91,24 +116,32 @@ public class TurmaController {
                         );
                     }
 
-                    // ✔ Buscar matriz válida
+                    // Buscar matriz válida
                     Matriz matriz = matrizRepository.findById(dados.getMatriz().getId())
                             .orElseThrow(() -> new ResponseStatusException(
                                     HttpStatus.BAD_REQUEST,
                                     "Matriz informada não encontrada."
                             ));
+                    
+                    // Validar dono da matriz
+                    if (matriz.getDono() == null || !matriz.getDono().getId().equals(dono.getId())) {
+                        throw new ResponseStatusException(
+                                HttpStatus.FORBIDDEN,
+                                "Você não pode vincular turmas a uma matriz de outro usuário."
+                        );
+                    }
 
                     turma.setMatriz(matriz);
-                    return ResponseEntity.ok(turmaRepository.save(turma));
+                    Turma salva = turmaRepository.save(turma);
+                    return ResponseEntity.ok(salva);
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // ---------------- Vincular DISCIPLINA à TURMA (com validação da matriz) ----------------
     @PostMapping("/{turmaId}/disciplinas/{disciplinaId}")
-    public ResponseEntity<?> adicionarDisciplinaNaTurma(
-            @PathVariable Long turmaId,
-            @PathVariable Long disciplinaId) {
+    public ResponseEntity<?> adicionarDisciplinaNaTurma(@PathVariable Long turmaId, @PathVariable Long disciplinaId) {
+        Usuario dono = getUsuarioLogado();
 
         Optional<Turma> turmaOpt = turmaRepository.findById(turmaId);
         Optional<Disciplina> disciplinaOpt = disciplinaRepository.findById(disciplinaId);
@@ -119,6 +152,12 @@ public class TurmaController {
 
         Turma turma = turmaOpt.get();
         Disciplina disciplina = disciplinaOpt.get();
+
+        // validar dono
+        if (turma.getDono() == null || !turma.getDono().getId().equals(dono.getId()) ||
+            disciplina.getDono() == null || !disciplina.getDono().getId().equals(dono.getId())) {
+            return ResponseEntity.status(403).body("Operação não permitida.");
+        }
 
         // Se a turma não tiver matriz, não tem como validar
         Matriz matriz = turma.getMatriz();
@@ -164,10 +203,9 @@ public class TurmaController {
 
     // ---------------- Remover DISCIPLINA da TURMA ----------------
     @DeleteMapping("/{turmaId}/disciplinas/{disciplinaId}")
-    public ResponseEntity<?> removerDisciplinaDaTurma(
-            @PathVariable Long turmaId,
-            @PathVariable Long disciplinaId) {
-
+    public ResponseEntity<?> removerDisciplinaDaTurma(@PathVariable Long turmaId, @PathVariable Long disciplinaId) {
+        Usuario dono = getUsuarioLogado();
+        
         Optional<Turma> turmaOpt = turmaRepository.findById(turmaId);
         Optional<Disciplina> disciplinaOpt = disciplinaRepository.findById(disciplinaId);
 
@@ -177,6 +215,12 @@ public class TurmaController {
 
         Turma turma = turmaOpt.get();
         Disciplina disciplina = disciplinaOpt.get();
+
+        //validar dono
+        if (turma.getDono() == null || !turma.getDono().getId().equals(dono.getId()) ||
+            disciplina.getDono() == null || !disciplina.getDono().getId().equals(dono.getId())) {
+            return ResponseEntity.status(403).body("Operação não permitida.");
+        }
 
         // remove dos dois lados do ManyToMany
         if (turma.getDisciplinas() != null) {
@@ -195,10 +239,32 @@ public class TurmaController {
     // DELETAR TURMA
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarTurma(@PathVariable Long id) {
-        if (!turmaRepository.existsById(id)) {
+        Usuario dono = getUsuarioLogado();
+
+        Optional<Turma> opt = turmaRepository.findById(id);
+        if (opt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+
+        Turma turma = opt.get();
+
+        if (turma.getDono() == null || !turma.getDono().getId().equals(dono.getId())) {
+            return ResponseEntity.status(403).build();
+        }
+
         turmaRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    //HELPER PRO DONO
+    private Usuario getUsuarioLogado() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getPrincipal() == null) {
+            throw new RuntimeException("Usuário não autenticado");
+        }
+
+        String email = auth.getPrincipal().toString();
+        return usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
     }
 }

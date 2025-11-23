@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,9 +26,13 @@ import com.projetoextensao.edurh.model.Disciplina;
 import com.projetoextensao.edurh.model.Matriz;
 import com.projetoextensao.edurh.model.Professor;
 import com.projetoextensao.edurh.model.Turma;
+import com.projetoextensao.edurh.model.Usuario;
 import com.projetoextensao.edurh.repository.DisciplinaRepository;
 import com.projetoextensao.edurh.repository.MatrizRepository;
 import com.projetoextensao.edurh.repository.ProfessorRepository;
+import com.projetoextensao.edurh.repository.UsuarioRepository;
+
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/professores")
@@ -41,73 +46,112 @@ public class ProfessorController {
     private MatrizRepository matrizRepository;
 
     @Autowired
-    private DisciplinaRepository disciplinaRepository; // crie se ainda não existir
+    private DisciplinaRepository disciplinaRepository; 
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     // ---------------- CRUD básico ----------------
     @PostMapping
     public ResponseEntity<Professor> criarProfessor(@RequestBody Professor professor) {
-        return ResponseEntity.ok(professorRepository.save(professor));
+        Usuario dono = getUsuarioLogado();   // pega o usuário dono (do token)
+        professor.setDono(dono);             // marca o professor como pertencente a esse usuário
+
+        Professor salvo = professorRepository.save(professor);
+        return ResponseEntity.ok(salvo);
     }
 
     @GetMapping
     public List<Professor> listarProfessores() {
-        return professorRepository.findAll();
+        Usuario dono = getUsuarioLogado();
+        return professorRepository.findByDono(dono);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Professor> buscarProfessor(@PathVariable Long id) {
-        return professorRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Usuario dono = getUsuarioLogado();
+
+    return professorRepository.findById(id)
+            .filter(p -> p.getDono().getId().equals(dono.getId()))
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.status(403).build());  // proibido acessar dos outros
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Professor> atualizarProfessor(@PathVariable Long id, @RequestBody Professor dados) {
+        Usuario dono = getUsuarioLogado();
+
         return professorRepository.findById(id)
+                .filter(p -> p.getDono().getId().equals(dono.getId()))
                 .map(professor -> {
                     professor.setNome(dados.getNome());
                     professor.setCargaHoraria(dados.getCargaHoraria());
                     professor.setTurno(dados.getTurno());
-                    return ResponseEntity.ok(professorRepository.save(professor));
+                    Professor salvo = professorRepository.save(professor);
+                    return ResponseEntity.ok(salvo);
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(403).build());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarProfessor(@PathVariable Long id) {
-        if (professorRepository.existsById(id)) {
-            professorRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
+        Usuario dono = getUsuarioLogado();
+
+        Optional<Professor> opt = professorRepository.findById(id);
+        if (opt.isEmpty()) {
+            // professor não existe
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
+
+        Professor professor = opt.get();
+
+        // se o professor não pertence ao usuário logado, bloqueia
+        if (professor.getDono() == null || !professor.getDono().getId().equals(dono.getId())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        professorRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
     // ---------------- Vincular professor a uma disciplina ----------------
     @PostMapping("/{professorId}/disciplinas/{disciplinaId}")
     public ResponseEntity<?> adicionarProfessorADisciplina(@PathVariable Long professorId, @PathVariable Long disciplinaId) {
+        Usuario dono = getUsuarioLogado();
+        
         Optional<Professor> professorOpt = professorRepository.findById(professorId);
         Optional<Disciplina> disciplinaOpt = disciplinaRepository.findById(disciplinaId);
 
-        if (professorOpt.isPresent() && disciplinaOpt.isPresent()) {
-            Professor professor = professorOpt.get();
-            Disciplina disciplina = disciplinaOpt.get();
+        if (professorOpt.isEmpty() || disciplinaOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
+        Professor professor = professorOpt.get();
+        Disciplina disciplina = disciplinaOpt.get();
+
+        // BLOQUEAR se estiver mexendo em registros de outro usuário
+        if (!professor.getDono().getId().equals(dono.getId()) ||
+            !disciplina.getDono().getId().equals(dono.getId())) {
+            return ResponseEntity.status(403).body("Operação não permitida.");
+        }
+
+        // evita duplicar
+        if (!disciplina.getProfessores().contains(professor)) {
             disciplina.getProfessores().add(professor);
             professor.getDisciplinas().add(disciplina);
 
             disciplinaRepository.save(disciplina);
             professorRepository.save(professor);
-
-            return ResponseEntity.ok("Professor adicionado à disciplina!");
         }
-        return ResponseEntity.notFound().build();
+
+        return ResponseEntity.ok("Professor adicionado à disciplina!");
     }
 
     // ---------------- Remover DISCIPLINA do PROFESSOR ----------------
     @DeleteMapping("/{professorId}/disciplinas/{disciplinaId}")
-    public ResponseEntity<?> removerDisciplinaDoProfessor(
-            @PathVariable Long professorId,
-            @PathVariable Long disciplinaId) {
+    public ResponseEntity<?> removerDisciplinaDoProfessor( @PathVariable Long professorId, @PathVariable Long disciplinaId) {
+
+        Usuario dono = getUsuarioLogado();
 
         Optional<Professor> professorOpt = professorRepository.findById(professorId);
         Optional<Disciplina> disciplinaOpt = disciplinaRepository.findById(disciplinaId);
@@ -119,7 +163,12 @@ public class ProfessorController {
         Professor professor = professorOpt.get();
         Disciplina disciplina = disciplinaOpt.get();
 
-        // Remove dos dois lados da relação ManyToMany
+        // garantir que ambos pertencem ao usuário logado
+        if (!professor.getDono().getId().equals(dono.getId()) ||
+            !disciplina.getDono().getId().equals(dono.getId())) {
+            return ResponseEntity.status(403).body("Operação não permitida.");
+        }
+
         if (professor.getDisciplinas() != null) {
             professor.getDisciplinas().remove(disciplina);
         }
@@ -135,9 +184,8 @@ public class ProfessorController {
 
     // ---------------- Vincular MATRIZ ao PROFESSOR ----------------
     @PostMapping("/{professorId}/matrizes/{matrizId}")
-    public ResponseEntity<?> adicionarMatrizAoProfessor(
-            @PathVariable Long professorId,
-            @PathVariable Long matrizId) {
+    public ResponseEntity<?> adicionarMatrizAoProfessor(@PathVariable Long professorId, @PathVariable Long matrizId) {
+        Usuario dono = getUsuarioLogado();
 
         Optional<Professor> profOpt = professorRepository.findById(professorId);
         Optional<Matriz> matrizOpt = matrizRepository.findById(matrizId);
@@ -149,7 +197,12 @@ public class ProfessorController {
         Professor professor = profOpt.get();
         Matriz matriz = matrizOpt.get();
 
-        // evita duplicar
+        // validar dono
+        if (!professor.getDono().getId().equals(dono.getId()) ||
+            !matriz.getDono().getId().equals(dono.getId())) {
+            return ResponseEntity.status(403).body("Operação não permitida.");
+        }
+
         if (!professor.getMatrizes().contains(matriz)) {
             professor.getMatrizes().add(matriz);
             professorRepository.save(professor);
@@ -160,9 +213,8 @@ public class ProfessorController {
 
     // ---------------- Remover MATRIZ do PROFESSOR ----------------
     @DeleteMapping("/{professorId}/matrizes/{matrizId}")
-    public ResponseEntity<?> removerMatrizDoProfessor(
-            @PathVariable Long professorId,
-            @PathVariable Long matrizId) {
+    public ResponseEntity<?> removerMatrizDoProfessor(@PathVariable Long professorId, @PathVariable Long matrizId) {
+        Usuario dono = getUsuarioLogado();
 
         Optional<Professor> profOpt = professorRepository.findById(professorId);
         Optional<Matriz> matrizOpt = matrizRepository.findById(matrizId);
@@ -174,9 +226,14 @@ public class ProfessorController {
         Professor professor = profOpt.get();
         Matriz matriz = matrizOpt.get();
 
-        if (professor.getMatrizes() != null &&
-            professor.getMatrizes().contains(matriz)) {
+        // validar dono
+        if (!professor.getDono().getId().equals(dono.getId()) ||
+            !matriz.getDono().getId().equals(dono.getId())) {
+            return ResponseEntity.status(403).body("Operação não permitida.");
+        }
 
+        // remover se existir
+        if (professor.getMatrizes() != null && professor.getMatrizes().contains(matriz)) {
             professor.getMatrizes().remove(matriz);
             professorRepository.save(professor);
         }
@@ -210,6 +267,18 @@ public class ProfessorController {
                 .sum();
     }
 
+    //HELPER PRO DONO
+    private Usuario getUsuarioLogado() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getPrincipal() == null) {
+            throw new RuntimeException("Usuário não autenticado");
+        }
+
+        String email = auth.getPrincipal().toString();
+        return usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+    }
+
 
 
 //---------------------- Relatórios -------------------------------------------------------------------------------------------
@@ -219,7 +288,8 @@ public class ProfessorController {
     public List<Map<String, Object>> relatorioCHPorProfessor() {
         List<Map<String, Object>> relatorio = new ArrayList<>();
 
-        for (Professor prof : professorRepository.findAll()) {
+        Usuario dono = getUsuarioLogado();
+        for (Professor prof : professorRepository.findByDono(dono)) {
 
             int rtHoras = Optional.ofNullable(prof.getCargaHoraria()).orElse(0); // RT do professor
             int totalPeriodos = calcularTotalPeriodosProfessor(prof);                  // períodos usados
@@ -246,7 +316,8 @@ public class ProfessorController {
     public List<Map<String, Object>> relatorioProfessoresPorMatriz() {
         List<Map<String, Object>> relatorio = new ArrayList<>();
 
-        for (Matriz matriz : matrizRepository.findAll()) {
+        Usuario dono = getUsuarioLogado();
+        for (Matriz matriz : matrizRepository.findByDono(dono)) {
             Map<String, Object> item = new HashMap<>();
             item.put("matriz", matriz.getTipo());
 
@@ -269,7 +340,8 @@ public class ProfessorController {
     public List<Map<String, Object>> relatorioMatrizDetalhado() {
         List<Map<String, Object>> relatorio = new ArrayList<>();
 
-        for (Matriz matriz : matrizRepository.findAll()) {
+        Usuario dono = getUsuarioLogado();
+        for (Matriz matriz : matrizRepository.findByDono(dono)) {
             String tipoMatriz = matriz.getTipo();
             Long matrizId = matriz.getId();
             String turnoMatriz = matriz.getTurno() != null ? matriz.getTurno().name() : null;
@@ -301,7 +373,8 @@ public class ProfessorController {
         // Mapa: professorNome -> (periodo -> DTO)
         Map<String, Map<String, Map<String, Object>>> mapa = new HashMap<>();
 
-        for (Matriz matriz : matrizRepository.findAll()) {
+        Usuario dono = getUsuarioLogado();
+        for (Matriz matriz : matrizRepository.findByDono(dono)) {
             String periodo = (matriz.getTurno() != null) ? matriz.getTurno().name() : "UNDEFINED";
 
             for (Turma turma : matriz.getTurmas()) {

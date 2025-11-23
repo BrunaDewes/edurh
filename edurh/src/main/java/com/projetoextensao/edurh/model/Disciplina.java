@@ -44,6 +44,10 @@ public class Disciplina {
 
     private int cargaHoraria; // CH dessa disciplina
 
+    @ManyToOne
+    @JoinColumn(name = "dono_id")
+    private Usuario dono;
+
     // getters e setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -59,4 +63,8 @@ public class Disciplina {
 
     public int getCargaHoraria() { return cargaHoraria; }
     public void setCargaHoraria(int cargaHoraria) { this.cargaHoraria = cargaHoraria; }
+
+    public Usuario getDono() { return dono; }
+    public void setDono(Usuario dono) { this.dono = dono; }
+
 }

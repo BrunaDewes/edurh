@@ -340,7 +340,7 @@ export default function Relatorios() {
                 <tr>
                   <th style={styles.th}>Professor</th>
                   <th style={styles.th}>Período / Turno</th>
-                  <th style={styles.th}>Total de períodos usados</th>
+                  <th style={styles.th}>Total de períodos usados (somando disciplinas nas turmas)</th>
                   <th style={styles.th}>Limite pelo RT (períodos)</th>
                   <th style={styles.th}>Períodos livres (períodos)</th>
                   <th style={styles.th}>Disciplinas/Turmas</th>

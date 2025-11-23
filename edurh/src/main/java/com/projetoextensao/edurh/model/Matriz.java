@@ -30,6 +30,10 @@ public class Matriz {
     @JsonIgnoreProperties("matriz")
     private Set<Turma> turmas = new HashSet<>();
 
+    @ManyToOne
+    @JoinColumn(name = "dono_id")
+    private Usuario dono;
+
     // getters e setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -45,5 +49,9 @@ public class Matriz {
 
     public Set<Turma> getTurmas() { return turmas; }
     public void setTurmas(Set<Turma> turmas) { this.turmas = turmas; }
+
+    public Usuario getDono() { return dono; }
+    public void setDono(Usuario dono) { this.dono = dono; }
+
 }
     
