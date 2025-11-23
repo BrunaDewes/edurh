@@ -11,6 +11,7 @@ export default function DetalhesProfessor() {
   const [mensagem, setMensagem] = useState("");
   const [todasDisciplinas, setTodasDisciplinas] = useState([]);
   const [disciplinaSelecionada, setDisciplinaSelecionada] = useState("");
+  const [totalCHEmTurmas, setTotalCHEmTurmas] = useState(null); 
 
   const carregarProfessor = useCallback (async () => {
     try {
@@ -48,6 +49,41 @@ export default function DetalhesProfessor() {
     carregarProfessor();
     carregarDisciplinas();
   }, [carregarProfessor, carregarDisciplinas]);
+
+  // Carregar CH total em turmas (somando todos os turnos)
+  useEffect(() => {
+    if (!professor) return;
+
+    async function carregarCHEmTurmas() {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(
+          `${API_BASE_URL}/professores/relatorio/distribuicao-ch-turno`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (!res.ok) {
+          console.error("Erro ao carregar distribuição CH:", await res.text());
+          return;
+        }
+
+        const dados = await res.json();
+
+        // filtra só esse professor
+        const total = dados
+          .filter((item) => item.professor === professor.nome)
+          .reduce((soma, item) => soma + (item.totalPeriodos || 0), 0);
+
+        setTotalCHEmTurmas(total);
+      } catch (e) {
+        console.error("Erro ao calcular CH em turmas:", e);
+      }
+    }
+
+    carregarCHEmTurmas();
+  }, [professor]);
 
   const calcularCHAtual = () => {
     if (!professor?.matrizes) return 0;
@@ -226,6 +262,13 @@ export default function DetalhesProfessor() {
             </span>
           )}
         </p>
+        {totalCHEmTurmas !== null && (
+          <p>
+            Carga horária total em turmas (considerando todas as matrizes e turnos):{" "}
+            <strong>{totalCHEmTurmas} períodos</strong>
+          </p>
+        )}
+
         {excedeu && (
           <p style={{ marginTop: "6px" }}>
             ⚠ Este professor <strong>ultrapassou a carga horária</strong>.
