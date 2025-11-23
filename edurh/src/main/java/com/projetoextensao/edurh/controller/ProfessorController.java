@@ -317,16 +317,36 @@ public class ProfessorController {
         List<Map<String, Object>> relatorio = new ArrayList<>();
 
         Usuario dono = getUsuarioLogado();
+        // carga todos os professores do dono uma vez (evita N+1 e permite checar matrizes)
+        List<Professor> professoresDoDono = professorRepository.findByDono(dono);
+
         for (Matriz matriz : matrizRepository.findByDono(dono)) {
             Map<String, Object> item = new HashMap<>();
             item.put("matriz", matriz.getTipo());
 
             Set<String> nomesProfessores = new HashSet<>();
+
+            // 1) professores que aparecem nas disciplinas das turmas da matriz
             matriz.getTurmas().forEach(turma ->
                 turma.getDisciplinas().forEach(disciplina ->
-                    disciplina.getProfessores().forEach(prof -> nomesProfessores.add(prof.getNome()))
+                    disciplina.getProfessores().forEach(prof -> {
+                        if (prof != null && prof.getNome() != null) {
+                            nomesProfessores.add(prof.getNome());
+                        }
+                    })
                 )
             );
+
+            // 2) professores que possuem essa matriz em professor.matrizes
+            for (Professor prof : professoresDoDono) {
+                if (prof.getMatrizes() != null) {
+                    boolean temAMatriz = prof.getMatrizes().stream()
+                        .anyMatch(m -> m != null && m.getId() != null && m.getId().equals(matriz.getId()));
+                    if (temAMatriz && prof.getNome() != null) {
+                        nomesProfessores.add(prof.getNome());
+                    }
+                }
+            }
 
             item.put("professores", nomesProfessores);
             relatorio.add(item);
