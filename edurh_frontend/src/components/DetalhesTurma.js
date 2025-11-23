@@ -231,17 +231,25 @@ export default function DetalhesTurma() {
                       <tr key={disc.id}>
                         <td style={styles.td}>{disc.nome}</td>
                         <td style={styles.td}>{disc.cargaHoraria} períodos</td>
+                        
                         <td style={styles.td}>
-                          {Array.isArray(disc.professores) &&
-                          disc.professores.filter(
-                            (p) => p && typeof p === "object"
-                          ).length > 0
-                            ? disc.professores
-                                .filter((p) => p && typeof p === "object")
-                                .map((p) => p.nome)
-                                .join(", ")
-                            : "—"}
+                          {(() => {
+                            if (!Array.isArray(disc.professores)) return "—";
+
+                            // Filtra somente professores que têm esta matriz
+                            const profsValidos = disc.professores.filter((p) =>
+                              p &&
+                              typeof p === "object" &&
+                              Array.isArray(p.matrizes) &&
+                              p.matrizes.some((m) => m.id === turma.matriz.id)
+                            );
+
+                            if (profsValidos.length === 0) return "—";
+
+                            return profsValidos.map((p) => p.nome).join(", ");
+                          })()}
                         </td>
+
                         <td style={styles.td}>
                           <button
                             style={styles.excluirBtn}
