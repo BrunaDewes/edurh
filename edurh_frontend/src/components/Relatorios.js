@@ -124,7 +124,7 @@ export default function Relatorios() {
         "Período/Turno",
         "Total de períodos usados",
         "Limite pelo RT (períodos)",
-        "Períodos livres (períodos)",
+        "Períodos livres (globais)",
         "Disciplinas/Turmas",
       ]);
       relDistribuicao.forEach((item) => {
@@ -133,7 +133,7 @@ export default function Relatorios() {
           item.periodo,
           item.totalPeriodos,
           item.maxPeriodos,
-          item.periodosLivres,
+          item.periodosLivresTotal,
           Array.isArray(item.disciplinasTurmas)
             ? item.disciplinasTurmas.join(", ")
             : "",
@@ -342,7 +342,7 @@ export default function Relatorios() {
                   <th style={styles.th}>Período / Turno</th>
                   <th style={styles.th}>Total de períodos usados (somando disciplinas nas turmas)</th>
                   <th style={styles.th}>Limite pelo RT (períodos)</th>
-                  <th style={styles.th}>Períodos livres (períodos)</th>
+                  <th style={styles.th}>Períodos livres (globais)</th>
                   <th style={styles.th}>Disciplinas/Turmas</th>
                 </tr>
               </thead>
@@ -353,7 +353,7 @@ export default function Relatorios() {
                     <td style={styles.td}>{item.periodo}</td>
                     <td style={styles.td}>{item.totalPeriodos}</td>
                     <td style={styles.td}>{item.maxPeriodos}</td>
-                    <td style={styles.td}>{item.periodosLivres}</td>
+                    <td style={styles.td}>{item.periodosLivresTotal}</td>   {/* disponibilidade GLOBAL correta */}
                     <td style={styles.td}>
                       {Array.isArray(item.disciplinasTurmas)
                         ? item.disciplinasTurmas.join(", ")

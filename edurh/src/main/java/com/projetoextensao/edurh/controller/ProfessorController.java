@@ -258,15 +258,6 @@ public class ProfessorController {
         }
     }
 
-    private int calcularTotalPeriodosProfessor(Professor prof) {
-        if (prof.getDisciplinas() == null) return 0;
-
-        return prof.getDisciplinas().stream()
-                .filter(d -> d != null)
-                .mapToInt(d -> Optional.ofNullable(d.getCargaHoraria()).orElse(0))
-                .sum();
-    }
-
     //HELPER PRO DONO
     private Usuario getUsuarioLogado() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -289,10 +280,32 @@ public class ProfessorController {
         List<Map<String, Object>> relatorio = new ArrayList<>();
 
         Usuario dono = getUsuarioLogado();
-        for (Professor prof : professorRepository.findByDono(dono)) {
+        // carrega todos os professores do dono para iterar
+        List<Professor> professoresDoDono = professorRepository.findByDono(dono);
 
+        // percorre cada professor e calcula totalPeriodos a partir das disciplinas nas turmas/matrizes
+        for (Professor prof : professoresDoDono) {
+
+            // Calcula totalPeriodos contando disciplinas onde o professor aparece dentro das turmas das matrizes do dono
+            int totalPeriodos = 0;
+
+            for (Matriz matriz : matrizRepository.findByDono(dono)) {
+                for (Turma turma : matriz.getTurmas()) {
+                    for (Disciplina disciplina : turma.getDisciplinas()) {
+                        // se a disciplina lista esse professor entre seus professores, acumula
+                        if (disciplina.getProfessores() != null) {
+                            boolean presente = disciplina.getProfessores().stream()
+                                .anyMatch(p -> p != null && p.getId() != null && p.getId().equals(prof.getId()));
+                            if (presente) {
+                                totalPeriodos += Optional.ofNullable(disciplina.getCargaHoraria()).orElse(0);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Também pega RT e converte
             int rtHoras = Optional.ofNullable(prof.getCargaHoraria()).orElse(0); // RT do professor
-            int totalPeriodos = calcularTotalPeriodosProfessor(prof);                  // períodos usados
             int maxPeriodos = calcularMaxPeriodosRT(rtHoras);                          // limite em períodos
 
             // aqui eu estou usando "preparação" como períodos ainda livres
@@ -300,10 +313,11 @@ public class ProfessorController {
 
             Map<String, Object> item = new HashMap<>();
             item.put("professor", prof.getNome());
-            item.put("cargaHorariaHoras", rtHoras);       // agora é RT de verdade (20, 30, 40, 44…)
-            item.put("totalPeriodos", totalPeriodos);     // soma das disciplinas (igual DetalhesProfessor)
-            item.put("preparacaoPeriodos", preparacaoPeriodos); // períodos ainda disponíveis
-            item.put("periodosParaAulas", maxPeriodos);   // limite a partir do RT (igual DetalhesProfessor)
+            item.put("professorId", prof.getId()); // útil para front
+            item.put("cargaHorariaHoras", rtHoras);
+            item.put("totalPeriodos", totalPeriodos);
+            item.put("preparacaoPeriodos", preparacaoPeriodos);
+            item.put("periodosParaAulas", maxPeriodos);
 
             relatorio.add(item);
         }
@@ -394,6 +408,7 @@ public class ProfessorController {
         Map<String, Map<String, Map<String, Object>>> mapa = new HashMap<>();
 
         Usuario dono = getUsuarioLogado();
+        // Primeiro: percorre matrizes -> turmas -> disciplinas e acumula total por professor/turno
         for (Matriz matriz : matrizRepository.findByDono(dono)) {
             String periodo = (matriz.getTurno() != null) ? matriz.getTurno().name() : "UNDEFINED";
 
@@ -401,9 +416,11 @@ public class ProfessorController {
                 String turmaNome = turma.getNome();
 
                 for (Disciplina disciplina : turma.getDisciplinas()) {
-                    int periodosDisciplina = disciplina.getCargaHoraria(); // períodos
+                    int periodosDisciplina = Optional.ofNullable(disciplina.getCargaHoraria()).orElse(0);
 
                     for (Professor prof : disciplina.getProfessores()) {
+                        if (prof == null || prof.getNome() == null) continue;
+
                         String profNome = prof.getNome();
 
                         mapa.putIfAbsent(profNome, new HashMap<>());
@@ -418,12 +435,12 @@ public class ProfessorController {
 
                             dto.put("professor", profNome);
                             dto.put("periodo", periodo);
-                            dto.put("totalPeriodos", 0);          // vamos acumular
-                            dto.put("maxPeriodos", maxPeriodos);  // limite pelo RT
+                            dto.put("totalPeriodos", 0);
+                            dto.put("maxPeriodos", maxPeriodos);
                             dto.put("disciplinasTurmas", new ArrayList<String>());
                         }
 
-                        // somar períodos
+                        // acumula períodos por (professor, periodo)
                         int atual = (int) dto.get("totalPeriodos");
                         dto.put("totalPeriodos", atual + periodosDisciplina);
 
@@ -435,20 +452,49 @@ public class ProfessorController {
             }
         }
 
-        // transformar em lista final e calcular períodos livres
+        // Agora: calcular totalAcross (soma de todos os turnos) e preencher periodosLivres corretamente
+        Map<String, Integer> totalAcross = new HashMap<>(); // professorNome -> total em todos turnos
+        Map<String, Integer> maxPeriodosPorProfessor = new HashMap<>(); // professorNome -> maxPeriodos
+
+        for (Map.Entry<String, Map<String, Map<String, Object>>> entry : mapa.entrySet()) {
+            String profNome = entry.getKey();
+            int soma = 0;
+            int maxP = 0;
+
+            for (Map<String, Object> dto : entry.getValue().values()) {
+                soma += (int) dto.getOrDefault("totalPeriodos", 0);
+                // garante maxPeriodos (todos os dtos daquele professor têm o mesmo maxPeriodos)
+                int mp = (int) dto.getOrDefault("maxPeriodos", 0);
+                if (mp > maxP) maxP = mp;
+            }
+
+            totalAcross.put(profNome, soma);
+            maxPeriodosPorProfessor.put(profNome, maxP);
+        }
+
+        // transformar em lista final e calcular períodos livres corretos
         List<Map<String, Object>> resultado = new ArrayList<>();
 
         for (Map<String, Map<String, Object>> mapaPeriodo : mapa.values()) {
             for (Map<String, Object> dto : mapaPeriodo.values()) {
-                int totalPeriodos = (int) dto.get("totalPeriodos");
-                int maxPeriodos = (int) dto.get("maxPeriodos");
-                int livres = Math.max(0, maxPeriodos - totalPeriodos);
+                String profNome = (String) dto.get("professor");
+                int totalPeriodos = (int) dto.getOrDefault("totalPeriodos", 0);
+                int maxPeriodos = (int) dto.getOrDefault("maxPeriodos", 0);
 
-                dto.put("periodosLivres", livres);
+                int totalDoProfessor = totalAcross.getOrDefault(profNome, 0);
+
+                // Períodos livres por turno (apenas informativo — não representa disponibilidade global)
+                int livresPorTurno = Math.max(0, maxPeriodos - totalPeriodos);
+
+                // Períodos livres globais (correto): capacidade total do professor menos o total usado em todos os turnos
+                int livresTotal = Math.max(0, maxPeriodosPorProfessor.getOrDefault(profNome, maxPeriodos) - totalDoProfessor);
+
+                dto.put("periodosLivresPorTurno", livresPorTurno);
+                dto.put("periodosLivresTotal", livresTotal);
+
                 resultado.add(dto);
             }
         }
-
         return resultado;
     }
 }
