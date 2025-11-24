@@ -12,6 +12,8 @@ export default function Professores() {
   const [cargaHoraria, setCargaHoraria] = useState("");
   const [turno, setTurno] = useState("MANHA");
   const [editando, setEditando] = useState(null);
+  // Mapa para armazenar a CH total em turmas por ID de professor
+  const [chTotalEmTurmas, setChTotalEmTurmas] = useState({});
   const [mensagem, setMensagem] = useState("");
 
   // Carregar lista
@@ -23,21 +25,52 @@ export default function Professores() {
 
   const carregarProfessores = async () => {
     const token = localStorage.getItem("token");
+    setMensagem(""); // Limpa mensagem de erro antes de buscar
 
     try {
-      const res = await fetch(`${API_BASE_URL}/professores`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // 1. Busca a lista básica de professores
+      const [resProf, resRelatorio] = await Promise.all([
+        fetch(`${API_BASE_URL}/professores`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+        // 2. Busca o relatório detalhado de distribuição de CH
+        fetch(`${API_BASE_URL}/professores/relatorio/distribuicao-ch-turno`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
-      if (!res.ok) throw new Error("Erro ao carregar professores.");
+      if (!resProf.ok) throw new Error("Erro ao carregar professores.");
+      if (!resRelatorio.ok) throw new Error("Erro ao carregar relatório de CH.");
 
-      const data = await res.json();
-      setProfessores(data);
+      const dataProf = await resProf.json();
+      const dataRelatorio = await resRelatorio.json();
+
+      setProfessores(dataProf);
+
+      // Mapeia o resultado do relatório: professorId -> soma totalPeriodos
+      const mapChTotal = dataRelatorio.reduce((acc, item) => {
+        // Assume que o backend retorna o professorId em algum lugar do objeto.
+        // O backend atual não retorna o ID, apenas o nome! 
+        // 🚨 Por enquanto, vamos usar o NOME do professor como chave, 
+        // mas o ideal seria usar o ID (e modificar o backend para incluí-lo)
+        
+        // Se o professor já estiver no mapa, atualiza a CH TOTAL
+        // (necessário porque o relatório tem uma linha para cada turno/período)
+        const currentTotal = acc[item.professor] || 0;
+        acc[item.professor] = currentTotal + (item.totalPeriodos || 0);
+
+        return acc;
+      }, {});
+      
+      // Armazena o mapa (Nome do Professor -> CH Total em Turmas)
+      setChTotalEmTurmas(mapChTotal); 
+
     } catch (err) {
-      setMensagem("Erro ao carregar professores.");
+      console.error(err);
+      setMensagem(err.message || "Erro ao carregar dados.");
     }
   };
 
@@ -201,9 +234,16 @@ export default function Professores() {
                 prof.nome.toLowerCase().includes(busca.toLowerCase())
               )
               .map((prof) => {
-                const chAtual = calcularCargaAtual(prof);   // calcula CH atual (periodos)
+                // A CH que o professor tem vinculada diretamente a ele (calculado localmente)
+                // const chAtual = calcularCargaAtual(prof); 
+                
+                //NOVO VALOR: CH total em turmas, buscado do relatório
+                const chEmTurmas = chTotalEmTurmas[prof.nome] || 0;
+
                 const maxPeriodos = calcularMaxPeriodosRT(prof.cargaHoraria || 0);
-                const excedeu = chAtual > maxPeriodos;
+                
+                // Agora, usamos a CH em turmas para verificar se excedeu
+                const excedeu = chEmTurmas > maxPeriodos;
 
                 return (
                   <tr
@@ -213,7 +253,8 @@ export default function Professores() {
                     <td>{prof.id}</td>
                     <td>{prof.nome}</td>
                     <td>
-                      {chAtual} períodos / {maxPeriodos} períodos{" "}
+                      {/* Mostra a CH em Turmas / Limite */}
+                      {chEmTurmas} períodos / {maxPeriodos} períodos{" "} 
                       {prof.cargaHoraria != null && (
                         <span style={{ fontSize: "0.85rem" }}>
                           (RT {prof.cargaHoraria}h)
