@@ -435,6 +435,7 @@ public class ProfessorController {
 
                             dto.put("professor", profNome);
                             dto.put("periodo", periodo);
+                            dto.put("professorId", prof.getId());
                             dto.put("totalPeriodos", 0);
                             dto.put("maxPeriodos", maxPeriodos);
                             dto.put("disciplinasTurmas", new ArrayList<String>());

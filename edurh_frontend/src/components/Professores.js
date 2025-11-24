@@ -52,15 +52,11 @@ export default function Professores() {
 
       // Mapeia o resultado do relatório: professorId -> soma totalPeriodos
       const mapChTotal = dataRelatorio.reduce((acc, item) => {
-        // Assume que o backend retorna o professorId em algum lugar do objeto.
-        // O backend atual não retorna o ID, apenas o nome! 
-        // 🚨 Por enquanto, vamos usar o NOME do professor como chave, 
-        // mas o ideal seria usar o ID (e modificar o backend para incluí-lo)
         
         // Se o professor já estiver no mapa, atualiza a CH TOTAL
         // (necessário porque o relatório tem uma linha para cada turno/período)
-        const currentTotal = acc[item.professor] || 0;
-        acc[item.professor] = currentTotal + (item.totalPeriodos || 0);
+        const currentTotal = acc[item.professorId] || 0;
+        acc[item.professorId] = currentTotal + (item.totalPeriodos || 0);
 
         return acc;
       }, {});
@@ -238,7 +234,7 @@ export default function Professores() {
                 // const chAtual = calcularCargaAtual(prof); 
                 
                 //NOVO VALOR: CH total em turmas, buscado do relatório
-                const chEmTurmas = chTotalEmTurmas[prof.nome] || 0;
+                const chEmTurmas = chTotalEmTurmas[prof.id] || 0;
 
                 const maxPeriodos = calcularMaxPeriodosRT(prof.cargaHoraria || 0);
                 
