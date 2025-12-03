@@ -110,9 +110,31 @@ public class ProfessorController {
             return ResponseEntity.status(403).build();
         }
 
+        // 💡 PASSO 1: Lidar com o relacionamento INVERSO (Disciplina -> Professor)
+        // Para cada disciplina ligada a este professor, remove a referência ao professor.
+        // Isso limpa as linhas na tabela de junção 'disciplina_professor'.
+        for (Disciplina disciplina : new HashSet<>(professor.getDisciplinas())) {
+            if (disciplina.getProfessores() != null) {
+                disciplina.getProfessores().remove(professor);
+                // Salva a disciplina para persistir a mudança no lado proprietário
+                disciplinaRepository.save(disciplina);
+            }
+        }
+        // Opcional, mas limpa o cache da coleção no objeto
+        professor.getDisciplinas().clear();
+
+
+        // 💡 PASSO 2: Lidar com o relacionamento PROPRIETÁRIO (Professor -> Matriz)
+        // Limpa as referências na tabela de junção 'professor_matriz'.
+        if (professor.getMatrizes() != null) {
+            professor.getMatrizes().clear();
+            professorRepository.save(professor); // Salva para persistir a limpeza antes do DELETE
+        }
+
+        // 💡 PASSO 3: Exclusão final
         professorRepository.deleteById(id);
         return ResponseEntity.noContent().build();
-    }
+        }
 
     // ---------------- Vincular professor a uma disciplina ----------------
     @PostMapping("/{professorId}/disciplinas/{disciplinaId}")

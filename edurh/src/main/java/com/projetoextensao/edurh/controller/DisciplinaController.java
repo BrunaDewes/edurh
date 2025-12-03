@@ -88,6 +88,30 @@ public class DisciplinaController {
             return ResponseEntity.status(403).build();
         }
 
+        // 💡 PASSO 1: Lidar com o relacionamento INVERSO (Professor -> Disciplina)
+        // Para cada professor ligado a esta disciplina, remove a referência à disciplina.
+        for (Professor professor : new HashSet<>(disciplina.getProfessores())) {
+            if (professor.getDisciplinas() != null) {
+                professor.getDisciplinas().remove(disciplina);
+                professorRepository.save(professor); // Salva o professor
+            }
+        }
+        // Opcional, mas limpa o cache da coleção no objeto
+        disciplina.getProfessores().clear();
+
+
+        // 💡 PASSO 2: Lidar com o relacionamento INVERSO (Turma -> Disciplina)
+        // Para cada turma ligada a esta disciplina, remove a referência à disciplina.
+        for (Turma turma : new HashSet<>(disciplina.getTurmas())) {
+            if (turma.getDisciplinas() != null) {
+                turma.getDisciplinas().remove(disciplina);
+                turmaRepository.save(turma); // Salva a turma
+            }
+        }
+        // Opcional, mas limpa o cache da coleção no objeto
+        disciplina.getTurmas().clear();
+
+        // 💡 PASSO 3: Exclusão final
         disciplinaRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
